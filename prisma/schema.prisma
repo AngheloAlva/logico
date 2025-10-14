@@ -1,0 +1,251 @@
+
+generator client {
+  provider      = "prisma-client-js"
+  output        = "../src/generated/prisma"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String      @id
+  name             String
+  email            String
+  emailVerified    Boolean     @default(false)
+  image            String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @default(now()) @updatedAt
+  role             String?
+  banned           Boolean?    @default(false)
+  banReason        String?
+  banExpires       DateTime?
+  twoFactorEnabled Boolean?    @default(false)
+  sessions         Session[]
+  accounts         Account[]
+  twofactors       TwoFactor[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  ipAddress      String?
+  userAgent      String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  impersonatedBy String?
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
+}
+
+model TwoFactor {
+  id          String @id
+  secret      String
+  backupCodes String
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("twoFactor")
+}
+
+model Region {
+  id         String     @id @default(uuid())
+  name       String
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  cities     City[]
+  pharmacies Pharmacy[]
+  drivers    Driver[]
+
+  @@map("region")
+}
+
+model City {
+  id         String     @id @default(uuid())
+  name       String
+  regionId   String
+  region     Region     @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  pharmacies Pharmacy[]
+  drivers    Driver[]
+
+  @@map("city")
+}
+
+model Pharmacy {
+  id           String      @id @default(uuid())
+  name         String
+  address      String
+  contactPhone String
+  contactEmail String
+  contactName  String
+  regionId     String
+  region       Region      @relation(fields: [regionId], references: [id])
+  cityId       String
+  city         City        @relation(fields: [cityId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  movements    Movement[]
+  auditLogs    AuditLog[]
+
+  @@map("pharmacy")
+}
+
+model Driver {
+  id         String      @id @default(uuid())
+  name       String
+  rut        String      @unique
+  email      String
+  phone      String
+  licenseUrl String?
+  active     Boolean     @default(true)
+  address    String?
+  regionId   String?
+  region     Region?     @relation(fields: [regionId], references: [id])
+  cityId     String?
+  city       City?       @relation(fields: [cityId], references: [id])
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  motorbike  Motorbike?
+  movements  Movement[]
+  auditLogs  AuditLog[]
+
+  @@map("driver")
+}
+
+model Motorbike {
+  id         String      @id @default(uuid())
+  brand      String
+  class      String
+  model      String
+  plate      String      @unique
+  color      String
+  cylinders  Int
+  year       Int
+  mileage    Int
+  image      String?
+  driverId   String?     @unique
+  driver     Driver?     @relation(fields: [driverId], references: [id])
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  auditLogs  AuditLog[]
+
+  @@map("motorbike")
+}
+
+enum MovementStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  INCIDENT
+}
+
+model Movement {
+  id               String         @id @default(uuid())
+  number           String         @unique
+  pharmacyId       String
+  pharmacy         Pharmacy       @relation(fields: [pharmacyId], references: [id])
+  driverId         String
+  driver           Driver         @relation(fields: [driverId], references: [id])
+  address          String
+  departureDate    DateTime?
+  deliveryDate     DateTime?
+  status           MovementStatus @default(PENDING)
+  segments         Int?
+  segmentCost      Decimal?       @db.Decimal(10, 2)
+  segmentsAddress  String[]
+  hasRecipe        Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  incidents        Incident[]
+  auditLogs        AuditLog[]
+
+  @@map("movement")
+}
+
+enum IncidentType {
+  direccion_erronea
+  cliente_no_encontrado
+  reintento
+  cobro_rechazado
+  otro
+}
+
+model Incident {
+  id              String       @id @default(uuid())
+  movementId      String
+  movement        Movement     @relation(fields: [movementId], references: [id], onDelete: Cascade)
+  type            IncidentType
+  description     String       @db.Text
+  date            DateTime
+  createdByUserId String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  auditLogs       AuditLog[]
+
+  @@map("incident")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  entity       String
+  entityId     String
+  action       String
+  userId       String
+  timestamp    DateTime @default(now())
+  previousData Json?
+  newData      Json?
+  pharmacyId   String?
+  pharmacy     Pharmacy? @relation(fields: [pharmacyId], references: [id])
+  driverId     String?
+  driver       Driver?   @relation(fields: [driverId], references: [id])
+  motorbikeId  String?
+  motorbike    Motorbike? @relation(fields: [motorbikeId], references: [id])
+  movementId   String?
+  movement     Movement? @relation(fields: [movementId], references: [id])
+  incidentId   String?
+  incident     Incident? @relation(fields: [incidentId], references: [id])
+
+  @@index([entity, entityId])
+  @@map("audit_log")
+}
