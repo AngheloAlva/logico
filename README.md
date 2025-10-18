@@ -2,6 +2,24 @@
 
 > Sistema web completo para automatizar los procesos de distribución de despachos a domicilio para farmacias Cruz Verde, desarrollado por Discopro Ltda.
 
+## 📚 Documentación Completa
+
+**¡Nueva documentación detallada disponible!** Para una guía completa del proyecto, consulta:
+
+### 🚀 Quick Start
+- **[Guía Rápida](./docs/GUIA-RAPIDA.md)** - Comandos esenciales y referencia rápida
+- **[Instalación](./docs/07-INSTALACION.md)** - Guía paso a paso para configurar el proyecto
+
+### 📖 Documentación Detallada
+- **[Índice General](./docs/00-INDICE.md)** - Navegación completa de la documentación
+- **[Introducción](./docs/01-INTRODUCCION.md)** - Contexto del negocio y problema que resuelve
+- **[Arquitectura](./docs/02-ARQUITECTURA.md)** - Stack tecnológico y patrones de diseño
+- **[Estructura](./docs/03-ESTRUCTURA.md)** - Organización del código y convenciones
+- **[Modelo de Datos](./docs/04-MODELO-DATOS.md)** - Base de datos y relaciones
+- **[Desarrollo](./docs/08-DESARROLLO.md)** - Guía para desarrolladores
+
+---
+
 ## 🎉 Estado del Proyecto: MVP Frontend Completo
 
 El proyecto está **listo para desarrollo backend**. Toda la interfaz de usuario ha sido implementada con las siguientes características:

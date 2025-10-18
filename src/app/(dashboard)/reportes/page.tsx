@@ -1,24 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
+import { Download, FileText, Calendar, TrendingUp, Package, CheckCircle } from "lucide-react"
 import { useState, useEffect } from "react"
+import { toast } from "sonner"
+
+import { getDailyReport } from "@/project/report/actions/get-daily-report"
+import { getPharmacies } from "@/project/pharmacy/actions/get-pharmacies"
+import { getStatistics } from "@/project/report/actions/get-statistics"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { Separator } from "@/shared/components/ui/separator"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import {
 	Select,
-	SelectContent,
 	SelectItem,
-	SelectTrigger,
 	SelectValue,
+	SelectTrigger,
+	SelectContent,
 } from "@/shared/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Download, FileText, Calendar, TrendingUp, Package, CheckCircle } from "lucide-react"
-import { Separator } from "@/shared/components/ui/separator"
-import { getStatistics, getDailyReport } from "./actions/reports-actions"
-import { getPharmacies } from "../farmacias/actions/pharmacies-actions"
-import { toast } from "sonner"
-import { Pharmacy } from "@/generated/prisma"
+
+import type { Pharmacy } from "@/generated/prisma"
 
 export default function ReportesPage() {
 	const [reportDate, setReportDate] = useState("")
@@ -89,15 +92,16 @@ export default function ReportesPage() {
 		}
 	}
 
-	const exportToCSV = (data: any) => {
-		const { movements, stats } = data
+	const exportToCSV = (data: Awaited<ReturnType<typeof getDailyReport>>["data"]) => {
+		if (!data) {
+			toast.error("Error al generar reporte")
+			return
+		}
 
-		// Crear CSV con header
 		let csv =
 			"Numero,Farmacia,Motorista,Estado,Fecha Creacion,Fecha Salida,Fecha Entrega,Incidencias\n"
 
-		// Agregar filas
-		movements.forEach((mov: any) => {
+		data.movements.forEach((mov) => {
 			const row = [
 				mov.number,
 				mov.pharmacy?.name || "N/A",
@@ -111,15 +115,13 @@ export default function ReportesPage() {
 			csv += row + "\n"
 		})
 
-		// Agregar estadísticas al final
 		csv += "\n\nESTADISTICAS\n"
-		csv += `Total Movimientos,${stats.total}\n`
-		csv += `Pendientes,${stats.pending}\n`
-		csv += `En Transito,${stats.inTransit}\n`
-		csv += `Entregados,${stats.delivered}\n`
-		csv += `Con Incidencias,${stats.incidents}\n`
+		csv += `Total Movimientos,${data.stats.total}\n`
+		csv += `Pendientes,${data.stats.pending}\n`
+		csv += `En Transito,${data.stats.inTransit}\n`
+		csv += `Entregados,${data.stats.delivered}\n`
+		csv += `Con Incidencias,${data.stats.incidents}\n`
 
-		// Descargar archivo
 		const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" })
 		const link = document.createElement("a")
 		const url = URL.createObjectURL(blob)
@@ -131,8 +133,12 @@ export default function ReportesPage() {
 		document.body.removeChild(link)
 	}
 
-	const exportToPDF = (data: any) => {
-		// Implementación básica - en producción usar una librería como jsPDF
+	const exportToPDF = (data: Awaited<ReturnType<typeof getDailyReport>>["data"]) => {
+		if (!data) {
+			toast.error("Error al generar reporte")
+			return
+		}
+
 		const { movements, stats } = data
 
 		let content = `REPORTE DIARIO - ${reportDate}\n\n`
@@ -144,7 +150,7 @@ export default function ReportesPage() {
 		content += `Con Incidencias: ${stats.incidents}\n\n`
 		content += `MOVIMIENTOS\n\n`
 
-		movements.forEach((mov: any, index: number) => {
+		movements.forEach((mov, index) => {
 			content += `${index + 1}. #${mov.number}\n`
 			content += `   Farmacia: ${mov.pharmacy?.name || "N/A"}\n`
 			content += `   Motorista: ${mov.driver?.name || "N/A"}\n`
@@ -152,7 +158,6 @@ export default function ReportesPage() {
 			content += `   Incidencias: ${mov.incidents?.length || 0}\n\n`
 		})
 
-		// Descargar como archivo de texto (en producción usar jsPDF)
 		const blob = new Blob([content], { type: "text/plain;charset=utf-8;" })
 		const link = document.createElement("a")
 		const url = URL.createObjectURL(blob)

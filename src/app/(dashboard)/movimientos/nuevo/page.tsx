@@ -1,27 +1,30 @@
 "use client"
 
+import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
+import Link from "next/link"
+
+import { getAvailableDrivers } from "@/project/driver/actions/get-available-drivers"
+import { createMovement } from "@/project/movement/actions/create-movement"
+import { getPharmacies } from "@/project/pharmacy/actions/get-pharmacies"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
+import { Switch } from "@/shared/components/ui/switch"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import {
 	Select,
-	SelectContent,
 	SelectItem,
-	SelectTrigger,
 	SelectValue,
+	SelectTrigger,
+	SelectContent,
 } from "@/shared/components/ui/select"
-import { Switch } from "@/shared/components/ui/switch"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react"
-import Link from "next/link"
-import { createMovement } from "../actions/movements-actions"
-import { getPharmacies } from "../../farmacias/actions/pharmacies-actions"
-import { getAvailableDrivers } from "../../motoristas/actions/drivers-actions"
-import { toast } from "sonner"
-import { Pharmacy } from "@/generated/prisma"
-import { Driver } from "@/generated/prisma"
+
+import type { Pharmacy } from "@/generated/prisma"
+import type { Driver } from "@/generated/prisma"
 
 export default function NuevoMovimientoPage() {
 	const router = useRouter()

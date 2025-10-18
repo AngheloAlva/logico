@@ -1,13 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import Link from "next/link"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react"
-import Link from "next/link"
 
 export default function NuevaRegionPage() {
 	const router = useRouter()

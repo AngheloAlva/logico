@@ -1,22 +1,22 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { toast } from "sonner"
+import Link from "next/link"
+
+import { getRegionById } from "@/project/region/actions/get-region-by-id"
+import { deleteCity } from "@/project/region/actions/city/delete-city"
+import { createCity } from "@/project/region/actions/city/create-city"
+import { updateCity } from "@/project/region/actions/city/update-city"
+import { deleteRegion } from "@/project/region/actions/delete-region"
+import { updateRegion } from "@/project/region/actions/update-region"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { ArrowLeft, Save, Plus, Trash2 } from "lucide-react"
-import Link from "next/link"
-import {
-	getRegionById,
-	updateRegion,
-	deleteRegion,
-	createCity,
-	updateCity,
-	deleteCity,
-} from "../actions/regions-actions"
-import { toast } from "sonner"
 
 export default function EditarRegionPage() {
 	const params = useParams()
@@ -28,25 +28,24 @@ export default function EditarRegionPage() {
 	const [citiesToDelete, setCitiesToDelete] = useState<string[]>([])
 
 	useEffect(() => {
-		loadRegion()
-	}, [loadRegion, params.id])
+		async function loadRegion() {
+			setLoading(true)
+			const result = await getRegionById(params.id as string)
 
-	// eslint-disable-next-line react-hooks/exhaustive-deps
-	async function loadRegion() {
-		setLoading(true)
-		const result = await getRegionById(params.id as string)
+			if (result.success && result.data) {
+				const region = result.data
+				setRegionName(region.name)
+				setCities(region.cities || [])
+			} else {
+				toast.error(result.error || "Error al cargar región")
+				router.push("/regiones")
+			}
 
-		if (result.success && result.data) {
-			const region = result.data
-			setRegionName(region.name)
-			setCities(region.cities || [])
-		} else {
-			toast.error(result.error || "Error al cargar región")
-			router.push("/regiones")
+			setLoading(false)
 		}
 
-		setLoading(false)
-	}
+		loadRegion()
+	}, [params.id, router])
 
 	const addCity = () => {
 		setCities([...cities, { id: `new-${Date.now()}`, name: "", isNew: true }])
@@ -55,12 +54,10 @@ export default function EditarRegionPage() {
 	const removeCity = (index: number) => {
 		const city = cities[index]
 
-		// Si la ciudad ya existe en BD, marcarla para eliminar
 		if (!city.isNew) {
 			setCitiesToDelete([...citiesToDelete, city.id])
 		}
 
-		// Remover de la lista actual
 		setCities(cities.filter((_, i) => i !== index))
 	}
 
@@ -75,7 +72,6 @@ export default function EditarRegionPage() {
 		setIsLoading(true)
 
 		try {
-			// 1. Actualizar nombre de la región
 			const updateRegionResult = await updateRegion(params.id as string, {
 				name: regionName,
 			})
@@ -86,22 +82,18 @@ export default function EditarRegionPage() {
 				return
 			}
 
-			// 2. Eliminar ciudades marcadas
 			for (const cityId of citiesToDelete) {
 				await deleteCity(cityId)
 			}
 
-			// 3. Crear nuevas ciudades y actualizar existentes
 			for (const city of cities) {
 				if (city.name.trim()) {
 					if (city.isNew) {
-						// Crear nueva ciudad
 						await createCity({
 							name: city.name,
 							regionId: params.id as string,
 						})
 					} else {
-						// Actualizar ciudad existente
 						await updateCity(city.id, {
 							name: city.name,
 							regionId: params.id as string,

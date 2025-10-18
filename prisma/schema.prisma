@@ -1,4 +1,3 @@
-
 generator client {
   provider      = "prisma-client-js"
   output        = "../src/generated/prisma"
@@ -26,6 +25,7 @@ model User {
   sessions         Session[]
   accounts         Account[]
   twofactors       TwoFactor[]
+  incidents        Incident[]
 
   @@unique([email])
   @@map("user")
@@ -113,18 +113,18 @@ model City {
 }
 
 model Pharmacy {
-  id           String      @id @default(uuid())
+  id           String     @id @default(uuid())
   name         String
   address      String
   contactPhone String
   contactEmail String
   contactName  String
   regionId     String
-  region       Region      @relation(fields: [regionId], references: [id])
+  region       Region     @relation(fields: [regionId], references: [id])
   cityId       String
-  city         City        @relation(fields: [cityId], references: [id])
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  city         City       @relation(fields: [cityId], references: [id])
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
   movements    Movement[]
   auditLogs    AuditLog[]
 
@@ -132,20 +132,20 @@ model Pharmacy {
 }
 
 model Driver {
-  id         String      @id @default(uuid())
+  id         String     @id @default(uuid())
   name       String
-  rut        String      @unique
+  rut        String     @unique
   email      String
   phone      String
   licenseUrl String?
-  active     Boolean     @default(true)
+  active     Boolean    @default(true)
   address    String?
   regionId   String?
-  region     Region?     @relation(fields: [regionId], references: [id])
+  region     Region?    @relation(fields: [regionId], references: [id])
   cityId     String?
-  city       City?       @relation(fields: [cityId], references: [id])
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  city       City?      @relation(fields: [cityId], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
   motorbike  Motorbike?
   movements  Movement[]
   auditLogs  AuditLog[]
@@ -154,21 +154,21 @@ model Driver {
 }
 
 model Motorbike {
-  id         String      @id @default(uuid())
-  brand      String
-  class      String
-  model      String
-  plate      String      @unique
-  color      String
-  cylinders  Int
-  year       Int
-  mileage    Int
-  image      String?
-  driverId   String?     @unique
-  driver     Driver?     @relation(fields: [driverId], references: [id])
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  auditLogs  AuditLog[]
+  id        String     @id @default(uuid())
+  brand     String
+  class     String
+  model     String
+  plate     String     @unique
+  color     String
+  cylinders Int
+  year      Int
+  mileage   Int
+  image     String?
+  driverId  String?    @unique
+  driver    Driver?    @relation(fields: [driverId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  auditLogs AuditLog[]
 
   @@map("motorbike")
 }
@@ -181,24 +181,24 @@ enum MovementStatus {
 }
 
 model Movement {
-  id               String         @id @default(uuid())
-  number           String         @unique
-  pharmacyId       String
-  pharmacy         Pharmacy       @relation(fields: [pharmacyId], references: [id])
-  driverId         String
-  driver           Driver         @relation(fields: [driverId], references: [id])
-  address          String
-  departureDate    DateTime?
-  deliveryDate     DateTime?
-  status           MovementStatus @default(PENDING)
-  segments         Int?
-  segmentCost      Decimal?       @db.Decimal(10, 2)
-  segmentsAddress  String[]
-  hasRecipe        Boolean        @default(false)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
-  incidents        Incident[]
-  auditLogs        AuditLog[]
+  id              String         @id @default(uuid())
+  number          String         @unique
+  pharmacyId      String
+  pharmacy        Pharmacy       @relation(fields: [pharmacyId], references: [id])
+  driverId        String
+  driver          Driver         @relation(fields: [driverId], references: [id])
+  address         String
+  departureDate   DateTime?
+  deliveryDate    DateTime?
+  status          MovementStatus @default(PENDING)
+  segments        Int?
+  segmentCost     Decimal?       @db.Decimal(10, 2)
+  segmentsAddress String[]
+  hasRecipe       Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  incidents       Incident[]
+  auditLogs       AuditLog[]
 
   @@map("movement")
 }
@@ -212,39 +212,41 @@ enum IncidentType {
 }
 
 model Incident {
-  id              String       @id @default(uuid())
+  id          String       @id @default(uuid())
+  type        IncidentType
+  description String       @db.Text
+  date        DateTime
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
   movementId      String
-  movement        Movement     @relation(fields: [movementId], references: [id], onDelete: Cascade)
-  type            IncidentType
-  description     String       @db.Text
-  date            DateTime
-  createdByUserId String
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  movement        Movement   @relation(fields: [movementId], references: [id], onDelete: Cascade)
   auditLogs       AuditLog[]
+  createdBy       User       @relation(fields: [createdByUserId], references: [id])
+  createdByUserId String
 
   @@map("incident")
 }
 
 model AuditLog {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   entity       String
   entityId     String
   action       String
   userId       String
-  timestamp    DateTime @default(now())
+  timestamp    DateTime   @default(now())
   previousData Json?
   newData      Json?
   pharmacyId   String?
-  pharmacy     Pharmacy? @relation(fields: [pharmacyId], references: [id])
+  pharmacy     Pharmacy?  @relation(fields: [pharmacyId], references: [id])
   driverId     String?
-  driver       Driver?   @relation(fields: [driverId], references: [id])
+  driver       Driver?    @relation(fields: [driverId], references: [id])
   motorbikeId  String?
   motorbike    Motorbike? @relation(fields: [motorbikeId], references: [id])
   movementId   String?
-  movement     Movement? @relation(fields: [movementId], references: [id])
+  movement     Movement?  @relation(fields: [movementId], references: [id])
   incidentId   String?
-  incident     Incident? @relation(fields: [incidentId], references: [id])
+  incident     Incident?  @relation(fields: [incidentId], references: [id])
 
   @@index([entity, entityId])
   @@map("audit_log")

@@ -1,16 +1,20 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { ArrowLeft, Save, Trash2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { toast } from "sonner"
+import Link from "next/link"
+
+import { getDriverById } from "@/project/driver/actions/get-driver-by-id"
+import { updateDriver } from "@/project/driver/actions/update-driver"
+import { deleteDriver } from "@/project/driver/actions/delete-driver"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
+import { Switch } from "@/shared/components/ui/switch"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
-import { Switch } from "@/shared/components/ui/switch"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { ArrowLeft, Save, Trash2 } from "lucide-react"
-import Link from "next/link"
-import { getDriverById, updateDriver, deleteDriver } from "../actions/drivers-actions"
-import { toast } from "sonner"
 
 export default function EditarMotoristaPage() {
 	const params = useParams()
@@ -27,31 +31,30 @@ export default function EditarMotoristaPage() {
 	})
 
 	useEffect(() => {
-		loadDriver()
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [params.id])
+		async function loadDriver() {
+			setLoading(true)
+			const result = await getDriverById(params.id as string)
 
-	async function loadDriver() {
-		setLoading(true)
-		const result = await getDriverById(params.id as string)
+			if (result.success && result.data) {
+				const driver = result.data
+				setFormData({
+					name: driver.name,
+					rut: driver.rut,
+					email: driver.email,
+					phone: driver.phone,
+					address: driver.address || "",
+					active: driver.active,
+				})
+			} else {
+				toast.error(result.error || "Error al cargar motorista")
+				router.push("/motoristas")
+			}
 
-		if (result.success && result.data) {
-			const driver = result.data
-			setFormData({
-				name: driver.name,
-				rut: driver.rut,
-				email: driver.email,
-				phone: driver.phone,
-				address: driver.address || "",
-				active: driver.active,
-			})
-		} else {
-			toast.error(result.error || "Error al cargar motorista")
-			router.push("/motoristas")
+			setLoading(false)
 		}
 
-		setLoading(false)
-	}
+		loadDriver()
+	}, [params.id, router])
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault()

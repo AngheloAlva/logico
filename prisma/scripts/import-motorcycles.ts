@@ -6,27 +6,27 @@ const prisma = new PrismaClient()
 
 interface VehicleRow {
 	"Grupo Vehiculo": string
-	Placa: string
-	digito: number
+	"Placa": string
+	"digito": number
 	"Codigo SII": string
 	"Año Vehículo": number
-	Tasacion: number
+	"Tasacion": number
 	"Tipo de Pago": string
-	Valor_Neto: number
-	Valor_IPC: number
-	Valor_Multa: number
+	"Valor_Neto": number
+	"Valor_IPC": number
+	"Valor_Multa": number
 	"Valor Pagado": number
 	"Forma Pago": string
-	Fecha_Pago: number
+	"Fecha_Pago": number
 	"Año Permiso": number
 	"Tipo Vehiculo": string
-	Marca: string
-	Modelo: string
-	Color: string
-	Transmisión: string
+	"Marca": string
+	"Modelo": string
+	"Color": string
+	"Transmisión": string
 	"Tipo Combustible": string
-	Cilindrada: number
-	Equipamiento: string
+	"Cilindrada": number
+	"Equipamiento": string
 	"Numero Puertas": number
 }
 
@@ -44,7 +44,7 @@ function isMotorcycle(row: VehicleRow): boolean {
 	)
 }
 
-function cleanString(value: any): string {
+function cleanString(value: unknown): string {
 	if (!value) return ""
 	return String(value).trim()
 }
@@ -60,11 +60,7 @@ function normalizeColor(color: string): string {
 async function importMotorcycles() {
 	console.log("🏍️  Iniciando importación de motos...")
 
-	const excelPath = path.join(
-		process.cwd(),
-		"base-data",
-		"permiso-de-circulacion-2023.xlsx"
-	)
+	const excelPath = path.join(process.cwd(), "base-data", "permiso-de-circulacion-2023.xlsx")
 	console.log(`📁 Leyendo archivo: ${excelPath}`)
 
 	const workbook = XLSX.readFile(excelPath)
@@ -131,11 +127,8 @@ async function importMotorcycles() {
 					console.log(`✅ Creadas: ${created}`)
 				}
 			}
-		} catch (error: any) {
-			console.error(
-				`❌ Error procesando moto ${row.Placa}:`,
-				error.message || error
-			)
+		} catch (error: unknown) {
+			console.error(`❌ Error procesando moto ${row.Placa}:`, error)
 			errors++
 		}
 	}

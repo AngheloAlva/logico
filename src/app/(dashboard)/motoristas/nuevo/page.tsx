@@ -1,21 +1,22 @@
 "use client"
 
-import { useState } from "react"
+import { ArrowLeft, Save, Upload } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import Link from "next/link"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
+import { Switch } from "@/shared/components/ui/switch"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import {
 	Select,
-	SelectContent,
 	SelectItem,
-	SelectTrigger,
 	SelectValue,
+	SelectTrigger,
+	SelectContent,
 } from "@/shared/components/ui/select"
-import { Switch } from "@/shared/components/ui/switch"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { ArrowLeft, Save, Upload } from "lucide-react"
-import Link from "next/link"
 
 export default function NuevoMotoristaPage() {
 	const router = useRouter()

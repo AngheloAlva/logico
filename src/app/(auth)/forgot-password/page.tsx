@@ -1,19 +1,20 @@
 "use client"
 
+import { AlertCircle, ArrowLeft, CheckCircle, Loader2 } from "lucide-react"
 import { useState } from "react"
+import Link from "next/link"
+
+import { Alert, AlertDescription } from "@/shared/components/ui/alert"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import {
 	Card,
+	CardTitle,
+	CardHeader,
 	CardContent,
 	CardDescription,
-	CardHeader,
-	CardTitle,
 } from "@/shared/components/ui/card"
-import { AlertCircle, ArrowLeft, CheckCircle, Loader2 } from "lucide-react"
-import { Alert, AlertDescription } from "@/shared/components/ui/alert"
-import Link from "next/link"
 
 export default function ForgotPasswordPage() {
 	const [email, setEmail] = useState("")

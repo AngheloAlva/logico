@@ -1,32 +1,37 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useState, useEffect } from "react"
+import { ArrowLeft, Save, Trash2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { toast } from "sonner"
+import Link from "next/link"
+
+import { getPharmacyById } from "@/project/pharmacy/actions/get-pharmacy-by-id"
+import { updatePharmacy } from "@/project/pharmacy/actions/update-pharmacy"
+import { deletePharmacy } from "@/project/pharmacy/actions/delete-pharmacy"
+import { getRegions } from "@/project/region/actions/get-regions"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import {
 	Select,
-	SelectContent,
 	SelectItem,
-	SelectTrigger,
 	SelectValue,
+	SelectTrigger,
+	SelectContent,
 } from "@/shared/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { ArrowLeft, Save, Trash2 } from "lucide-react"
-import Link from "next/link"
-import { getPharmacyById, updatePharmacy, deletePharmacy } from "../actions/pharmacies-actions"
-import { getRegions } from "../../regiones/actions/regions-actions"
-import { toast } from "sonner"
+
+import type { City } from "@/generated/prisma"
 
 export default function EditarFarmaciaPage() {
 	const params = useParams()
 	const router = useRouter()
 	const [isLoading, setIsLoading] = useState(false)
 	const [loading, setLoading] = useState(true)
-	const [regions, setRegions] = useState<any[]>([])
-	const [cities, setCities] = useState<any[]>([])
+	const [regions, setRegions] = useState<Awaited<ReturnType<typeof getRegions>>["data"]>([])
+	const [cities, setCities] = useState<City[]>([])
 	const [formData, setFormData] = useState({
 		name: "",
 		address: "",
@@ -44,7 +49,7 @@ export default function EditarFarmaciaPage() {
 
 	useEffect(() => {
 		if (formData.regionId) {
-			const region = regions.find((r) => r.id === formData.regionId)
+			const region = regions?.find((r) => r.id === formData.regionId)
 			setCities(region?.cities || [])
 		}
 	}, [formData.regionId, regions])
@@ -74,7 +79,7 @@ export default function EditarFarmaciaPage() {
 			})
 
 			// Set cities based on the region
-			const region = regionsResult.data?.find((r: any) => r.id === pharmacy.regionId)
+			const region = regionsResult.data?.find((r) => r.id === pharmacy.regionId)
 			if (region) {
 				setCities(region.cities || [])
 			}
@@ -185,7 +190,7 @@ export default function EditarFarmaciaPage() {
 										<SelectValue placeholder="Selecciona una región" />
 									</SelectTrigger>
 									<SelectContent>
-										{regions.map((region) => (
+										{regions?.map((region) => (
 											<SelectItem key={region.id} value={region.id}>
 												{region.name}
 											</SelectItem>

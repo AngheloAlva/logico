@@ -1,32 +1,31 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client"
 
-import { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { Button } from "@/shared/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { Badge } from "@/shared/components/ui/badge"
-import { Separator } from "@/shared/components/ui/separator"
+import { useState, useEffect } from "react"
+import { toast } from "sonner"
+import Link from "next/link"
 import {
-	ArrowLeft,
-	Package,
-	Building2,
+	Plus,
+	Clock,
 	Truck,
 	MapPin,
-	Clock,
+	Package,
+	ArrowLeft,
+	Building2,
 	AlertCircle,
-	Plus,
 	CheckCircle,
 } from "lucide-react"
-import Link from "next/link"
-import { IncidentForm } from "./components/incident-form"
-import {
-	getMovementById,
-	setDepartureDate,
-	setDeliveryDate,
-	getIncidentsByMovement,
-} from "../actions/movements-actions"
-import { toast } from "sonner"
+
+import { getIncidentsByMovement } from "@/project/movement/actions/incidents/get-incidents-by-movement"
+import { setDepartureDate } from "@/project/movement/actions/set-departure-date"
+import { getMovementById } from "@/project/movement/actions/get-movement-by-id"
+import { setDeliveryDate } from "@/project/movement/actions/set-delivery-date"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
+import { IncidentForm } from "@/project/movement/components/incident-form"
+import { Separator } from "@/shared/components/ui/separator"
+import { Button } from "@/shared/components/ui/button"
+import { Badge } from "@/shared/components/ui/badge"
 
 const statusConfig = {
 	PENDING: { label: "Pendiente", color: "bg-gray-100 text-gray-800" },
@@ -36,13 +35,16 @@ const statusConfig = {
 }
 
 export default function MovimientoDetallePage() {
+	const [incidents, setIncidents] = useState<
+		Awaited<ReturnType<typeof getIncidentsByMovement>>["data"]
+	>([])
+	const [movement, setMovement] = useState<Awaited<ReturnType<typeof getMovementById>>["data"]>()
+	const [showIncidentForm, setShowIncidentForm] = useState(false)
+	const [updating, setUpdating] = useState(false)
+	const [loading, setLoading] = useState(true)
+
 	const params = useParams()
 	const router = useRouter()
-	const [movement, setMovement] = useState<any>(null)
-	const [incidents, setIncidents] = useState<any[]>([])
-	const [showIncidentForm, setShowIncidentForm] = useState(false)
-	const [loading, setLoading] = useState(true)
-	const [updating, setUpdating] = useState(false)
 
 	useEffect(() => {
 		loadMovement()
@@ -177,7 +179,7 @@ export default function MovimientoDetallePage() {
 							</div>
 							<div>
 								<p className="text-muted-foreground text-sm font-medium">Costo por Segmento</p>
-								<p className="text-base">${movement.segmentCost.toLocaleString()}</p>
+								<p className="text-base">${movement?.segmentCost?.toLocaleString()}</p>
 							</div>
 						</div>
 						{movement.segmentsAddress?.length > 0 && (
@@ -292,7 +294,7 @@ export default function MovimientoDetallePage() {
 						/>
 					)}
 
-					{incidents.length > 0 ? (
+					{incidents && incidents.length > 0 ? (
 						<div className="space-y-4">
 							{incidents.map((incident) => (
 								<div
@@ -306,7 +308,7 @@ export default function MovimientoDetallePage() {
 											</Badge>
 											<p className="text-sm">{incident.description}</p>
 											<p className="text-muted-foreground text-xs">
-												Reportado por {incident.createdBy} el{" "}
+												Reportado por {incident.createdBy.name} el{" "}
 												{incident.date.toLocaleString("es-CL")}
 											</p>
 										</div>

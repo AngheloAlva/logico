@@ -14,10 +14,10 @@ const USERS = [
 		role: "operadora",
 	},
 	{
-		email: "gerente@logico.test",
+		email: "operadora2@logico.test",
 		password: "User123!",
-		name: "Gerente General",
-		role: "gerente",
+		name: "Operadora 2",
+		role: "operadora",
 	},
 ]
 

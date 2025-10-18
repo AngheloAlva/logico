@@ -1,31 +1,36 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { ArrowLeft, Save, Trash2 } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { toast } from "sonner"
+import Link from "next/link"
+
+import { getAvailableDrivers } from "@/project/driver/actions/get-available-drivers"
+import { getMotorbikeById } from "@/project/motorbike/actions/get-motorbike-by-id"
+import { updateMotorbike } from "@/project/motorbike/actions/update-motorbike"
+import { deleteMotorbike } from "@/project/motorbike/actions/delete-motorbike"
+
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import {
 	Select,
-	SelectContent,
 	SelectItem,
-	SelectTrigger,
 	SelectValue,
+	SelectTrigger,
+	SelectContent,
 } from "@/shared/components/ui/select"
-import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
-import { ArrowLeft, Save, Trash2 } from "lucide-react"
-import Link from "next/link"
-import { getMotorbikeById, updateMotorbike, deleteMotorbike } from "../actions/motorbikes-actions"
-import { getAvailableDrivers } from "../../motoristas/actions/drivers-actions"
-import { toast } from "sonner"
 
 export default function EditarMotoPage() {
 	const params = useParams()
 	const router = useRouter()
 	const [isLoading, setIsLoading] = useState(false)
 	const [loading, setLoading] = useState(true)
-	// eslint-disable-next-line @typescript-eslint/no-explicit-any
-	const [drivers, setDrivers] = useState<any[]>([])
+	const [drivers, setDrivers] = useState<Awaited<ReturnType<typeof getAvailableDrivers>>["data"]>(
+		[]
+	)
 	const [formData, setFormData] = useState({
 		brand: "",
 		model: "",
@@ -271,7 +276,7 @@ export default function EditarMotoPage() {
 								</SelectTrigger>
 								<SelectContent>
 									<SelectItem value="">Sin asignar</SelectItem>
-									{drivers.map((driver) => (
+									{drivers?.map((driver) => (
 										<SelectItem key={driver.id} value={driver.id}>
 											{driver.name}
 										</SelectItem>
