@@ -1,8 +1,19 @@
 "use server"
 
+import { headers } from "next/headers"
+
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 
 export async function getDriverById(id: string) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	})
+
+	if (!session?.user || session.user.role !== "admin") {
+		return { success: false, error: "Unauthorized" }
+	}
+
 	try {
 		const driver = await prisma.driver.findUnique({
 			where: { id },

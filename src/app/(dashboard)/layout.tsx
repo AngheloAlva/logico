@@ -2,22 +2,34 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 
+import { SidebarProvider, SidebarTrigger } from "@/shared/components/ui/sidebar"
 import { AppSidebar } from "@/shared/components/sidebar/app-sidebar"
-import { SidebarProvider } from "@/shared/components/ui/sidebar"
-import { SidebarTrigger } from "@/shared/components/ui/sidebar"
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-	const user = await auth.api.getSession({
+export default async function DashboardLayout({
+	children,
+}: {
+	children: React.ReactNode
+}) {
+	const session = await auth.api.getSession({
 		headers: await headers(),
 	})
 
-	if (!user) {
+	if (!session) {
 		return redirect("/login")
 	}
 
+	const user = session.user
+	const userRole = user.role
+
 	return (
 		<SidebarProvider>
-			<AppSidebar user={{ name: user.user.name, email: user.user.email }} />
+			<AppSidebar
+				user={{
+					name: user.name,
+					email: user.email,
+					role: userRole,
+				}}
+			/>
 
 			<main className="flex-1">
 				<SidebarTrigger />

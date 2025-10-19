@@ -1,9 +1,20 @@
 "use server"
 
+import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
+import { createAuditLog } from "@/lib/audit"
 
 export async function toggleDriverStatus(id: string) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	})
+
+	if (!session?.user || session.user.role !== "admin") {
+		return { success: false, error: "Unauthorized" }
+	}
+
 	try {
 		const driver = await prisma.driver.findUnique({
 			where: { id },
@@ -18,6 +29,17 @@ export async function toggleDriverStatus(id: string) {
 			data: {
 				active: !driver.active,
 			},
+		})
+
+		// Registrar auditoría
+		await createAuditLog({
+			entity: "DRIVER",
+			entityId: updated.id,
+			action: "STATUS_CHANGE",
+			userId: session.user.id,
+			previousData: driver,
+			newData: updated,
+			driverId: updated.id,
 		})
 
 		revalidatePath("/motoristas")

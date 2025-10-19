@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 
 import { authClient } from "@/lib/auth-client"
+import { hasAccessToRoute } from "@/lib/permissions"
 
 import { Sidebar, SidebarHeader, SidebarFooter, SidebarContent } from "../ui/sidebar"
 import { Avatar, AvatarFallback } from "../ui/avatar"
@@ -64,9 +65,16 @@ const menuItems = [
 	},
 ]
 
-export function AppSidebar({ user }: { user: { name: string; email: string } }) {
+export function AppSidebar({
+	user,
+}: Readonly<{ user: { name: string; email: string; role?: string | null } }>) {
 	const pathname = usePathname()
 	const router = useRouter()
+
+	// Filtrar items del menú según el rol del usuario
+	const filteredMenuItems = menuItems.filter((item) =>
+		hasAccessToRoute(user.role, item.href)
+	)
 
 	const handleLogout = async () => {
 		await authClient.signOut({
@@ -85,7 +93,7 @@ export function AppSidebar({ user }: { user: { name: string; email: string } }) 
 				<span>LogiCo</span>
 			</SidebarHeader>
 			<SidebarContent>
-				<NavMain items={menuItems} pathname={pathname} />
+				<NavMain items={filteredMenuItems} pathname={pathname} />
 			</SidebarContent>
 
 			<SidebarFooter>

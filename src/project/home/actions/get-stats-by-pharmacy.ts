@@ -1,8 +1,19 @@
 "use server"
 
+import { headers } from "next/headers"
+
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 
 export async function getStatsByPharmacy() {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	})
+
+	if (!session?.user) {
+		return { success: false, error: "Unauthorized" }
+	}
+
 	try {
 		const stats = await prisma.pharmacy.findMany({
 			include: {

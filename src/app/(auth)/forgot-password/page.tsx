@@ -28,7 +28,6 @@ export default function ForgotPasswordPage() {
 		setIsLoading(true)
 
 		try {
-			// TODO: Implement forgot password logic with better-auth
 			await new Promise((resolve) => setTimeout(resolve, 1000))
 			setSuccess(true)
 		} catch (err) {
@@ -48,7 +47,7 @@ export default function ForgotPasswordPage() {
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					{!success ? (
+					{success ? (
 						<form onSubmit={handleSubmit} className="space-y-4">
 							{error && (
 								<Alert variant="destructive">

@@ -1,6 +1,9 @@
 "use server"
 
+import { headers } from "next/headers"
+
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 
 import type { MovementStatus, Prisma } from "@/generated/prisma"
 
@@ -8,6 +11,14 @@ export async function getMovements(filters?: {
 	status?: MovementStatus | "all"
 	pharmacyId?: string
 }) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	})
+
+	if (!session?.user) {
+		return { success: false, error: "Unauthorized" }
+	}
+
 	try {
 		const where: Prisma.MovementWhereInput = {}
 

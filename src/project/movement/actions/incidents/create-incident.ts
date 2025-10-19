@@ -1,12 +1,23 @@
 "use server"
 
+import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 
 import { incidentSchema, type IncidentInput } from "@/shared/schemas/movement.schema"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
+import { createAuditLog } from "@/lib/audit"
 
 // Incidents
 export async function createIncident(data: IncidentInput, userId: string) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	})
+
+	if (!session?.user || (session.user.role !== "admin" && session.user.role !== "operadora")) {
+		return { success: false, error: "Unauthorized" }
+	}
+
 	try {
 		const validated = incidentSchema.parse(data)
 
@@ -24,6 +35,17 @@ export async function createIncident(data: IncidentInput, userId: string) {
 			data: {
 				status: "INCIDENT",
 			},
+		})
+
+		// Registrar auditoría
+		await createAuditLog({
+			entity: "INCIDENT",
+			entityId: incident.id,
+			action: "CREATE",
+			userId: session.user.id,
+			newData: incident,
+			incidentId: incident.id,
+			movementId: data.movementId,
 		})
 
 		revalidatePath(`/movimientos/${data.movementId}`)

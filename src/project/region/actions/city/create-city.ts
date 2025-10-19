@@ -1,11 +1,21 @@
 "use server"
 
+import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
 
 import { citySchema, type CityInput } from "@/shared/schemas/region.schema"
 import { prisma } from "@/lib/prisma"
+import { auth } from "@/lib/auth"
 
 export async function createCity(data: CityInput) {
+	const session = await auth.api.getSession({
+		headers: await headers(),
+	})
+
+	if (!session?.user || session.user.role !== "admin") {
+		return { success: false, error: "Unauthorized" }
+	}
+
 	try {
 		const validated = citySchema.parse(data)
 

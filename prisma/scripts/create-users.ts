@@ -19,6 +19,12 @@ const USERS = [
 		name: "Operadora 2",
 		role: "operadora",
 	},
+	{
+		email: "supervisor@logico.test",
+		password: "User123!",
+		name: "Supervisor del Sistema",
+		role: "supervisor",
+	},
 ]
 
 async function createUsers() {
