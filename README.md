@@ -72,6 +72,26 @@ Esta documentación está dividida en módulos para facilitar su lectura y mante
     - Matriz de permisos detallada
     - Implementación técnica y ejemplos
 
+### 📚 Manuales de Usuario
+
+- **[MANUAL-DE-USUARIO.md](./docs/MANUAL-DE-USUARIO.md)** - Manual General del Sistema
+  - Guía completa de todas las funcionalidades
+  - Instrucciones paso a paso
+  - Capturas de pantalla descriptivas
+  - Preguntas frecuentes
+
+- **[GUIA-OPERADORA.md](./docs/GUIA-OPERADORA.md)** - Guía Rápida para Operadoras
+  - Flujo de trabajo diario
+  - Gestión de movimientos
+  - Registro de incidencias
+  - Consejos prácticos
+
+- **[GUIA-SUPERVISOR.md](./docs/GUIA-SUPERVISOR.md)** - Guía Rápida para Supervisores
+  - Gestión de recursos
+  - Supervisión de operaciones
+  - Resolución de incidencias
+  - Generación de reportes
+
 ---
 
 ## 🚀 Quick Start

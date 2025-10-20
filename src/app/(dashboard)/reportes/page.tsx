@@ -252,7 +252,7 @@ export default function ReportesPage() {
 						<div className="space-y-2">
 							<Label htmlFor="pharmacy">Farmacia</Label>
 							<Select value={pharmacyId} onValueChange={setPharmacyId}>
-								<SelectTrigger className="focus:border-green-500 focus:ring-green-500">
+								<SelectTrigger className="w-full focus:border-green-500 focus:ring-green-500">
 									<SelectValue placeholder="Todas las farmacias" />
 								</SelectTrigger>
 								<SelectContent>

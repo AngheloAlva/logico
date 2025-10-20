@@ -36,6 +36,7 @@ import {
 	SelectTrigger,
 	SelectContent,
 } from "@/shared/components/ui/select"
+import { Pagination } from "@/shared/components/pagination"
 
 const statusConfig = {
 	PENDING: {
@@ -65,12 +66,18 @@ export function MovementsTable() {
 	const [searchTerm, setSearchTerm] = useState("")
 	const [statusFilter, setStatusFilter] = useState<string>("all")
 	const [loading, setLoading] = useState(true)
+	const [currentPage, setCurrentPage] = useState(1)
+	const [pageSize, setPageSize] = useState(10)
+	const [totalItems, setTotalItems] = useState(0)
+	const [totalPages, setTotalPages] = useState(0)
 
 	async function loadMovements() {
 		setLoading(true)
-		const result = await getMovements({})
+		const result = await getMovements({ page: currentPage, pageSize, search: searchTerm })
 		if (result.success && result.data) {
 			setMovements(result.data)
+			setTotalItems(result.total || 0)
+			setTotalPages(result.totalPages || 0)
 		} else {
 			toast.error(result.error || "Error al cargar movimientos")
 		}
@@ -78,8 +85,13 @@ export function MovementsTable() {
 	}
 
 	useEffect(() => {
-		loadMovements()
-	}, [])
+		const timeoutId = setTimeout(() => {
+			loadMovements()
+		}, 300)
+
+		return () => clearTimeout(timeoutId)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentPage, pageSize, searchTerm])
 
 	async function handleDelete(id: string, number: string) {
 		if (!confirm(`¿Eliminar movimiento #${number}?`)) return
@@ -94,15 +106,8 @@ export function MovementsTable() {
 	}
 
 	const filteredMovements = movements?.filter((movement) => {
-		const matchesSearch =
-			movement.number.includes(searchTerm) ||
-			movement.pharmacy?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			movement.driver?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			movement.address?.toLowerCase().includes(searchTerm.toLowerCase())
-
 		const matchesStatus = statusFilter === "all" || movement.status === statusFilter
-
-		return matchesSearch && matchesStatus
+		return matchesStatus
 	})
 
 	if (loading) {
@@ -214,6 +219,14 @@ export function MovementsTable() {
 							})}
 						</TableBody>
 					</Table>
+					<Pagination
+						currentPage={currentPage}
+						totalPages={totalPages}
+						pageSize={pageSize}
+						totalItems={totalItems}
+						onPageChange={setCurrentPage}
+						onPageSizeChange={setPageSize}
+					/>
 				</CardContent>
 			</Card>
 		</div>

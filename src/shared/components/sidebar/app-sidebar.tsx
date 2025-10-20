@@ -2,20 +2,20 @@
 
 import { usePathname, useRouter } from "next/navigation"
 import {
-	Bike,
-	Truck,
 	Users,
 	MapPin,
 	LogOut,
 	Package,
 	FileText,
+	Hospital,
 	TruckIcon,
-	Building2,
+	Motorbike,
+	SquareUser,
 	LayoutDashboard,
 } from "lucide-react"
 
-import { authClient } from "@/lib/auth-client"
 import { hasAccessToRoute } from "@/lib/permissions"
+import { authClient } from "@/lib/auth-client"
 
 import { Sidebar, SidebarHeader, SidebarFooter, SidebarContent } from "../ui/sidebar"
 import { Avatar, AvatarFallback } from "../ui/avatar"
@@ -36,17 +36,17 @@ const menuItems = [
 	{
 		title: "Farmacias",
 		href: "/farmacias",
-		icon: Building2,
+		icon: Hospital,
 	},
 	{
 		title: "Motoristas",
 		href: "/motoristas",
-		icon: Truck,
+		icon: SquareUser,
 	},
 	{
 		title: "Motos",
 		href: "/motos",
-		icon: Bike,
+		icon: Motorbike,
 	},
 	{
 		title: "Regiones",
@@ -71,10 +71,7 @@ export function AppSidebar({
 	const pathname = usePathname()
 	const router = useRouter()
 
-	// Filtrar items del menú según el rol del usuario
-	const filteredMenuItems = menuItems.filter((item) =>
-		hasAccessToRoute(user.role, item.href)
-	)
+	const filteredMenuItems = menuItems.filter((item) => hasAccessToRoute(user.role, item.href))
 
 	const handleLogout = async () => {
 		await authClient.signOut({
@@ -88,28 +85,32 @@ export function AppSidebar({
 
 	return (
 		<Sidebar>
-			<SidebarHeader>
-				<TruckIcon />
-				<span>LogiCo</span>
+			<SidebarHeader className="flex flex-row items-center gap-2">
+				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
+					<TruckIcon className="h-7 w-7 text-white" />
+				</div>
+				<span className="text-lg font-bold">LogiCo</span>
 			</SidebarHeader>
 			<SidebarContent>
 				<NavMain items={filteredMenuItems} pathname={pathname} />
 			</SidebarContent>
 
-			<SidebarFooter>
-				<Avatar className="h-8 w-8 rounded-lg">
-					<AvatarFallback className="rounded-lg">
-						{user.name.slice(0, 2).toUpperCase()}
-					</AvatarFallback>
-				</Avatar>
-				<div className="grid flex-1 text-left text-sm leading-tight">
-					<span className="truncate font-medium">{user.name}</span>
-					<span className="truncate text-xs">{user.email}</span>
-				</div>
+			<SidebarFooter className="p-2">
+				<div className="bg-accent flex flex-row items-center gap-2 rounded-lg p-2">
+					<Avatar className="h-8 w-8 rounded-lg">
+						<AvatarFallback className="rounded-lg">
+							{user.name.slice(0, 2).toUpperCase()}
+						</AvatarFallback>
+					</Avatar>
+					<div className="grid flex-1 text-left text-sm leading-tight">
+						<span className="truncate font-medium">{user.name}</span>
+						<span className="truncate text-xs">{user.email}</span>
+					</div>
 
-				<Button variant="ghost" onClick={handleLogout}>
-					<LogOut />
-				</Button>
+					<Button variant="ghost" onClick={handleLogout}>
+						<LogOut />
+					</Button>
+				</div>
 			</SidebarFooter>
 		</Sidebar>
 	)

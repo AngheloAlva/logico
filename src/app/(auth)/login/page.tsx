@@ -2,7 +2,6 @@
 
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { redirect } from "next/navigation"
 import { TruckIcon } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -23,9 +22,12 @@ import {
 	CardContent,
 	CardDescription,
 } from "@/shared/components/ui/card"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
 	const [isLoading, setIsLoading] = useState(false)
+
+	const router = useRouter()
 
 	const form = useForm<LoginSchema>({
 		resolver: zodResolver(loginSchema),
@@ -46,7 +48,7 @@ export default function LoginPage() {
 				},
 				{
 					onSuccess: () => {
-						redirect("/dashboard")
+						router.push("/dashboard")
 					},
 					onError: (ctx) => {
 						toast(ctx.error.message)

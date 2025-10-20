@@ -20,17 +20,24 @@ import {
 	TableHead,
 	TableHeader,
 } from "@/shared/components/ui/table"
+import { Pagination } from "@/shared/components/pagination"
 
 export function DriversTable() {
 	const [drivers, setDrivers] = useState<Awaited<ReturnType<typeof getDrivers>>["data"]>([])
 	const [searchTerm, setSearchTerm] = useState("")
 	const [loading, setLoading] = useState(true)
+	const [currentPage, setCurrentPage] = useState(1)
+	const [pageSize, setPageSize] = useState(10)
+	const [totalItems, setTotalItems] = useState(0)
+	const [totalPages, setTotalPages] = useState(0)
 
 	async function loadDrivers() {
 		setLoading(true)
-		const result = await getDrivers()
+		const result = await getDrivers({ page: currentPage, pageSize, search: searchTerm })
 		if (result.success && result.data) {
 			setDrivers(result.data)
+			setTotalItems(result.total || 0)
+			setTotalPages(result.totalPages || 0)
 		} else {
 			toast.error(result.error || "Error al cargar motoristas")
 		}
@@ -38,8 +45,13 @@ export function DriversTable() {
 	}
 
 	useEffect(() => {
-		loadDrivers()
-	}, [])
+		const timeoutId = setTimeout(() => {
+			loadDrivers()
+		}, 300)
+
+		return () => clearTimeout(timeoutId)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentPage, pageSize, searchTerm])
 
 	async function handleDelete(id: string, name: string) {
 		if (!confirm(`¿Eliminar motorista "${name}"?`)) return
@@ -53,12 +65,6 @@ export function DriversTable() {
 		}
 	}
 
-	const filteredDrivers = drivers?.filter(
-		(driver) =>
-			driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			driver.rut.includes(searchTerm) ||
-			driver.email.toLowerCase().includes(searchTerm.toLowerCase())
-	)
 
 	if (loading) {
 		return <div className="py-10 text-center">Cargando motoristas...</div>
@@ -73,7 +79,7 @@ export function DriversTable() {
 						placeholder="Buscar motoristas..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						className="pl-9 focus:border-green-500 focus:ring-green-500"
+						className="bg-white pl-9 focus:border-green-500 focus:ring-green-500"
 					/>
 				</div>
 			</div>
@@ -92,7 +98,7 @@ export function DriversTable() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{filteredDrivers?.map((driver) => (
+							{drivers?.map((driver) => (
 								<TableRow key={driver.id} className="border-green-100">
 									<TableCell>
 										<div className="flex items-center gap-3">
@@ -162,6 +168,14 @@ export function DriversTable() {
 							))}
 						</TableBody>
 					</Table>
+					<Pagination
+						currentPage={currentPage}
+						totalPages={totalPages}
+						pageSize={pageSize}
+						totalItems={totalItems}
+						onPageChange={setCurrentPage}
+						onPageSizeChange={setPageSize}
+					/>
 				</CardContent>
 			</Card>
 		</div>

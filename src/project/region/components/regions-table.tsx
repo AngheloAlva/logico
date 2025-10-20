@@ -20,6 +20,7 @@ import {
 	TableHead,
 	TableHeader,
 } from "@/shared/components/ui/table"
+import { Pagination } from "@/shared/components/pagination"
 
 interface Region {
 	id: string
@@ -32,27 +33,40 @@ export function RegionsTable() {
 	const [regions, setRegions] = useState<Region[]>([])
 	const [searchTerm, setSearchTerm] = useState("")
 	const [loading, setLoading] = useState(true)
+	const [currentPage, setCurrentPage] = useState(1)
+	const [pageSize, setPageSize] = useState(10)
+	const [totalItems, setTotalItems] = useState(0)
+	const [totalPages, setTotalPages] = useState(0)
 
 	useEffect(() => {
 		async function loadRegions() {
 			setLoading(true)
-			const result = await getRegions()
+			const result = await getRegions({ page: currentPage, pageSize, search: searchTerm })
 			if (result.success && result.data) {
 				setRegions(result.data as Region[])
+				setTotalItems(result.total || 0)
+				setTotalPages(result.totalPages || 0)
 			} else {
 				toast.error(result.error || "Error al cargar regiones")
 			}
 			setLoading(false)
 		}
 
-		void loadRegions()
-	}, [])
+		const timeoutId = setTimeout(() => {
+			void loadRegions()
+		}, 300)
+
+		return () => clearTimeout(timeoutId)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentPage, pageSize, searchTerm])
 
 	async function loadRegions() {
 		setLoading(true)
-		const result = await getRegions()
+		const result = await getRegions({ page: currentPage, pageSize, search: searchTerm })
 		if (result.success && result.data) {
 			setRegions(result.data as Region[])
+			setTotalItems(result.total || 0)
+			setTotalPages(result.totalPages || 0)
 		} else {
 			toast.error(result.error || "Error al cargar regiones")
 		}
@@ -71,9 +85,6 @@ export function RegionsTable() {
 		}
 	}
 
-	const filteredRegions = regions.filter((region) =>
-		region.name.toLowerCase().includes(searchTerm.toLowerCase())
-	)
 
 	if (loading) {
 		return <div className="py-10 text-center">Cargando regiones...</div>
@@ -89,7 +100,7 @@ export function RegionsTable() {
 							placeholder="Buscar región..."
 							value={searchTerm}
 							onChange={(e) => setSearchTerm(e.target.value)}
-							className="pl-9 focus:border-green-500 focus:ring-green-500"
+							className="bg-white pl-9 focus:border-green-500 focus:ring-green-500"
 						/>
 					</div>
 				</div>
@@ -103,7 +114,7 @@ export function RegionsTable() {
 						</TableRow>
 					</TableHeader>
 					<TableBody>
-						{filteredRegions.map((region) => (
+						{regions.map((region) => (
 							<TableRow key={region.id} className="border-green-100">
 								<TableCell>
 									<div className="flex items-center gap-3">
@@ -158,6 +169,14 @@ export function RegionsTable() {
 						))}
 					</TableBody>
 				</Table>
+				<Pagination
+					currentPage={currentPage}
+					totalPages={totalPages}
+					pageSize={pageSize}
+					totalItems={totalItems}
+					onPageChange={setCurrentPage}
+					onPageSizeChange={setPageSize}
+				/>
 			</CardContent>
 		</Card>
 	)

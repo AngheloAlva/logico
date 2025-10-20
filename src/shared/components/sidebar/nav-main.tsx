@@ -1,6 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 import {
 	SidebarMenu,
@@ -25,17 +26,19 @@ export function NavMain({
 }) {
 	return (
 		<SidebarGroup>
-			<SidebarGroupLabel>Platform</SidebarGroupLabel>
+			<SidebarGroupLabel>Menú</SidebarGroupLabel>
 			<SidebarMenu>
 				{items.map((item) => (
 					<SidebarMenuItem key={item.title}>
-						<SidebarMenuButton
-							tooltip={item.title}
-							className={cn("", pathname === item.href && "bg-accent text-accent-foreground")}
-						>
-							{item.icon && <item.icon />}
-							<span>{item.title}</span>
-						</SidebarMenuButton>
+						<Link href={item.href}>
+							<SidebarMenuButton
+								tooltip={item.title}
+								className={cn("", pathname === item.href && "bg-accent text-accent-foreground")}
+							>
+								{item.icon && <item.icon />}
+								<span>{item.title}</span>
+							</SidebarMenuButton>
+						</Link>
 					</SidebarMenuItem>
 				))}
 			</SidebarMenu>

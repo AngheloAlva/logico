@@ -2,14 +2,11 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 
-import { SidebarProvider, SidebarTrigger } from "@/shared/components/ui/sidebar"
+import { SidebarProvider } from "@/shared/components/ui/sidebar"
 import { AppSidebar } from "@/shared/components/sidebar/app-sidebar"
+import AppHeader from "@/shared/components/sidebar/app-header"
 
-export default async function DashboardLayout({
-	children,
-}: {
-	children: React.ReactNode
-}) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
 	const session = await auth.api.getSession({
 		headers: await headers(),
 	})
@@ -31,10 +28,10 @@ export default async function DashboardLayout({
 				}}
 			/>
 
-			<main className="flex-1">
-				<SidebarTrigger />
+			<main className="flex-1 overflow-hidden">
+				<AppHeader />
 
-				<div className="mx-auto p-8">{children}</div>
+				<div className="p-6 xl:px-8">{children}</div>
 			</main>
 		</SidebarProvider>
 	)

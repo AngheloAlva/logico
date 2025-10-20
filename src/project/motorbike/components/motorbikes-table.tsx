@@ -20,6 +20,7 @@ import {
 	TableHead,
 	TableHeader,
 } from "@/shared/components/ui/table"
+import { Pagination } from "@/shared/components/pagination"
 
 export function MotorbikesTable() {
 	const [motorbikes, setMotorbikes] = useState<Awaited<ReturnType<typeof getMotorbikes>>["data"]>(
@@ -27,28 +28,33 @@ export function MotorbikesTable() {
 	)
 	const [searchTerm, setSearchTerm] = useState("")
 	const [loading, setLoading] = useState(true)
+	const [currentPage, setCurrentPage] = useState(1)
+	const [pageSize, setPageSize] = useState(10)
+	const [totalItems, setTotalItems] = useState(0)
+	const [totalPages, setTotalPages] = useState(0)
 
 	useEffect(() => {
 		async function loadMotorbikes() {
 			setLoading(true)
-			const result = await getMotorbikes()
+			const result = await getMotorbikes({ page: currentPage, pageSize, search: searchTerm })
 			if (result.success && result.data) {
 				setMotorbikes(result.data)
+				setTotalItems(result.total || 0)
+				setTotalPages(result.totalPages || 0)
 			} else {
 				toast.error(result.error || "Error al cargar motos")
 			}
 			setLoading(false)
 		}
 
-		loadMotorbikes()
-	}, [])
+		const timeoutId = setTimeout(() => {
+			loadMotorbikes()
+		}, 300)
 
-	const filteredMotorbikes = motorbikes?.filter(
-		(motorbike) =>
-			motorbike.brand.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			motorbike.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			motorbike.plate.toLowerCase().includes(searchTerm.toLowerCase())
-	)
+		return () => clearTimeout(timeoutId)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentPage, pageSize, searchTerm])
+
 
 	if (loading) {
 		return (
@@ -85,7 +91,7 @@ export function MotorbikesTable() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{filteredMotorbikes?.map((motorbike) => (
+							{motorbikes?.map((motorbike) => (
 								<TableRow key={motorbike.id} className="border-green-100">
 									<TableCell>
 										<div className="flex items-center gap-3">
@@ -155,6 +161,14 @@ export function MotorbikesTable() {
 							))}
 						</TableBody>
 					</Table>
+					<Pagination
+						currentPage={currentPage}
+						totalPages={totalPages}
+						pageSize={pageSize}
+						totalItems={totalItems}
+						onPageChange={setCurrentPage}
+						onPageSizeChange={setPageSize}
+					/>
 				</CardContent>
 			</Card>
 		</div>

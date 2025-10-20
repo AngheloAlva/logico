@@ -19,6 +19,7 @@ import {
 	TableHead,
 	TableHeader,
 } from "@/shared/components/ui/table"
+import { Pagination } from "@/shared/components/pagination"
 
 const roleConfig = {
 	admin: {
@@ -31,8 +32,8 @@ const roleConfig = {
 		color: "bg-blue-100 text-blue-800",
 		icon: UserCog,
 	},
-	gerente: {
-		label: "Gerente",
+	supervisor: {
+		label: "Supervisor",
 		color: "bg-purple-100 text-purple-800",
 		icon: Briefcase,
 	},
@@ -41,11 +42,17 @@ const roleConfig = {
 export function UsersTable() {
 	const [users, setUsers] = useState<Awaited<ReturnType<typeof getUsers>>["data"]>([])
 	const [searchTerm, setSearchTerm] = useState("")
+	const [currentPage, setCurrentPage] = useState(1)
+	const [pageSize, setPageSize] = useState(10)
+	const [totalItems, setTotalItems] = useState(0)
+	const [totalPages, setTotalPages] = useState(0)
 
 	const loadUsers = async () => {
 		try {
-			const response = await getUsers()
+			const response = await getUsers({ page: currentPage, pageSize, search: searchTerm })
 			setUsers(response.data)
+			setTotalItems(response.total || 0)
+			setTotalPages(response.totalPages || 0)
 		} catch (error) {
 			console.error("Error al cargar usuarios:", error)
 			toast.error("Error al cargar usuarios")
@@ -53,8 +60,13 @@ export function UsersTable() {
 	}
 
 	useEffect(() => {
-		loadUsers()
-	}, [])
+		const timeoutId = setTimeout(() => {
+			loadUsers()
+		}, 300)
+
+		return () => clearTimeout(timeoutId)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentPage, pageSize, searchTerm])
 
 	return (
 		<div className="space-y-4">
@@ -83,7 +95,7 @@ export function UsersTable() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{users?.map((user) => {
+							{users.map((user) => {
 								const role = roleConfig[user.role as keyof typeof roleConfig]
 								const RoleIcon = role.icon
 
@@ -142,6 +154,14 @@ export function UsersTable() {
 							})}
 						</TableBody>
 					</Table>
+					<Pagination
+						currentPage={currentPage}
+						totalPages={totalPages}
+						pageSize={pageSize}
+						totalItems={totalItems}
+						onPageChange={setCurrentPage}
+						onPageSizeChange={setPageSize}
+					/>
 				</CardContent>
 			</Card>
 		</div>

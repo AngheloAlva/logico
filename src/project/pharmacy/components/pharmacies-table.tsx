@@ -1,6 +1,6 @@
 "use client"
 
-import { Edit, Trash2, Building2, Search } from "lucide-react"
+import { Edit, Trash2, Search, HospitalIcon } from "lucide-react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import Link from "next/link"
@@ -18,6 +18,7 @@ import {
 	TableHead,
 	TableHeader,
 } from "@/shared/components/ui/table"
+import { Pagination } from "@/shared/components/pagination"
 
 interface Pharmacy {
 	id: string
@@ -34,12 +35,18 @@ export function PharmaciesTable() {
 	const [pharmacies, setPharmacies] = useState<Pharmacy[]>([])
 	const [searchTerm, setSearchTerm] = useState("")
 	const [loading, setLoading] = useState(true)
+	const [currentPage, setCurrentPage] = useState(1)
+	const [pageSize, setPageSize] = useState(10)
+	const [totalItems, setTotalItems] = useState(0)
+	const [totalPages, setTotalPages] = useState(0)
 
 	async function loadPharmacies() {
 		setLoading(true)
-		const result = await getPharmacies()
+		const result = await getPharmacies({ page: currentPage, pageSize, search: searchTerm })
 		if (result.success && result.data) {
 			setPharmacies(result.data as Pharmacy[])
+			setTotalItems(result.total || 0)
+			setTotalPages(result.totalPages || 0)
 		} else {
 			toast.error(result.error || "Error al cargar farmacias")
 		}
@@ -47,8 +54,13 @@ export function PharmaciesTable() {
 	}
 
 	useEffect(() => {
-		loadPharmacies()
-	}, [])
+		const timeoutId = setTimeout(() => {
+			loadPharmacies()
+		}, 300)
+
+		return () => clearTimeout(timeoutId)
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [currentPage, pageSize, searchTerm])
 
 	async function handleDelete(id: string, name: string) {
 		if (!confirm(`¿Estás seguro de eliminar "${name}"?`)) return
@@ -62,12 +74,6 @@ export function PharmaciesTable() {
 		}
 	}
 
-	const filteredPharmacies = pharmacies.filter(
-		(pharmacy) =>
-			pharmacy.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			pharmacy.city.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-			pharmacy.address.toLowerCase().includes(searchTerm.toLowerCase())
-	)
 
 	if (loading) {
 		return <div className="py-10 text-center">Cargando farmacias...</div>
@@ -82,12 +88,12 @@ export function PharmaciesTable() {
 						placeholder="Buscar farmacias..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						className="pl-9 focus:border-green-500 focus:ring-green-500"
+						className="bg-white pl-9 focus:border-green-500 focus:ring-green-500"
 					/>
 				</div>
 			</div>
 
-			<Card className="">
+			<Card className="py-0">
 				<CardContent className="p-0">
 					<Table>
 						<TableHeader>
@@ -99,12 +105,12 @@ export function PharmaciesTable() {
 							</TableRow>
 						</TableHeader>
 						<TableBody>
-							{filteredPharmacies.map((pharmacy) => (
+							{pharmacies.map((pharmacy) => (
 								<TableRow key={pharmacy.id} className="border-green-100">
 									<TableCell>
 										<div className="flex items-center gap-3">
 											<div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-												<Building2 className="h-5 w-5 text-green-600" />
+												<HospitalIcon className="h-5 w-5 text-green-600" />
 											</div>
 											<div>
 												<p className="font-medium">{pharmacy.name}</p>
@@ -150,6 +156,14 @@ export function PharmaciesTable() {
 							))}
 						</TableBody>
 					</Table>
+					<Pagination
+						currentPage={currentPage}
+						totalPages={totalPages}
+						pageSize={pageSize}
+						totalItems={totalItems}
+						onPageChange={setCurrentPage}
+						onPageSizeChange={setPageSize}
+					/>
 				</CardContent>
 			</Card>
 		</div>
