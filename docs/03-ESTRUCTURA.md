@@ -84,6 +84,10 @@ logico/
 │   │   │   │   └── toggle-status.ts
 │   │   │   └── components/
 │   │   │       └── driver-form.tsx
+│   │   │   └── hooks/
+│   │   │       └── use-driver.ts
+│   │   │   └── lib/
+│   │   │       └── driver.ts
 │   │   │
 │   │   ├── motorbike/
 │   │   │   ├── actions/
@@ -96,6 +100,10 @@ logico/
 │   │   │   │   └── unassign-driver.ts
 │   │   │   └── components/
 │   │   │       └── motorbike-form.tsx
+│   │   │   └── hooks/
+│   │   │       └── use-motorbike.ts
+│   │   │   └── lib/
+│   │   │       └── motorbike.ts
 │   │   │
 │   │   ├── movement/
 │   │   │   ├── actions/
@@ -112,6 +120,10 @@ logico/
 │   │   │   └── components/
 │   │   │       ├── movement-form.tsx
 │   │   │       └── incident-form.tsx
+│   │   │   └── hooks/
+│   │   │       └── use-movement.ts
+│   │   │   └── lib/
+│   │   │       └── movement.ts
 │   │   │
 │   │   ├── pharmacy/
 │   │   │   ├── actions/
@@ -122,6 +134,10 @@ logico/
 │   │   │   │   └── get-pharmacies.ts
 │   │   │   └── components/
 │   │   │       └── pharmacy-form.tsx
+│   │   │   └── hooks/
+│   │   │       └── use-pharmacy.ts
+│   │   │   └── lib/
+│   │   │       └── pharmacy.ts
 │   │   │
 │   │   ├── region/
 │   │   │   ├── actions/
@@ -136,12 +152,20 @@ logico/
 │   │   │   └── components/
 │   │   │       ├── region-form.tsx
 │   │   │       └── city-form.tsx
+│   │   │   └── hooks/
+│   │   │       └── use-region.ts
+│   │   │   └── lib/
+│   │   │       └── region.ts
 │   │   │
 │   │   ├── report/
 │   │   │   └── actions/
 │   │   │       ├── get-daily-report.ts
 │   │   │       ├── get-statistics.ts
 │   │   │       └── export-report.ts
+│   │   │   └── hooks/
+│   │   │       └── use-report.ts
+│   │   │   └── lib/
+│   │   │       └── report.ts
 │   │   │
 │   │   ├── user/
 │   │   │   ├── actions/
@@ -153,6 +177,10 @@ logico/
 │   │   │   │   └── update-role.ts
 │   │   │   └── components/
 │   │   │       └── user-form.tsx
+│   │   │   └── hooks/
+│   │   │       └── use-user.ts
+│   │   │   └── lib/
+│   │   │       └── user.ts
 │   │   │
 │   │   └── home/
 │   │       ├── actions/
@@ -345,11 +373,14 @@ pharmacy/
 │   ├── create-pharmacy.ts
 │   ├── update-pharmacy.ts
 │   ├── delete-pharmacy.ts
-│   ├── get-pharmacy.ts
+│   ├── get-pharmacy-by-id.ts
 │   └── get-pharmacies.ts
 │
-└── components/
-    └── pharmacy-form.tsx
+├── components/
+│   └── pharmacy-form.tsx
+│
+└── hooks/
+    └── use-pharmacies.ts
 ```
 
 **create-pharmacy.ts:**
@@ -374,6 +405,47 @@ export async function createPharmacy(data: unknown) {
   
   // 4. Respuesta
   return { success: true, pharmacy }
+}
+```
+
+**use-pharmacies.ts:**
+```typescript
+'use client'
+
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { getPharmacies } from '../actions/get-pharmacies'
+import { createPharmacy } from '../actions/create-pharmacy'
+
+// Query Keys
+export const pharmacyKeys = {
+  all: ['pharmacies'] as const,
+  lists: () => [...pharmacyKeys.all, 'list'] as const,
+  list: (params?: { page?: number; pageSize?: number; search?: string }) =>
+    [...pharmacyKeys.lists(), params] as const,
+}
+
+// Hook para obtener lista de farmacias
+export function usePharmacies(params?: { page?: number; pageSize?: number; search?: string }) {
+  return useQuery({
+    queryKey: pharmacyKeys.list(params),
+    queryFn: () => getPharmacies(params),
+  })
+}
+
+// Hook para crear farmacia
+export function useCreatePharmacy() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: PharmacyInput) => createPharmacy(data),
+    onSuccess: (result) => {
+      if (result.success) {
+        queryClient.invalidateQueries({ queryKey: pharmacyKeys.lists() })
+        toast.success('Farmacia creada exitosamente')
+      }
+    },
+  })
 }
 ```
 
@@ -672,9 +744,206 @@ Configuración de linting para el proyecto.
 
 ---
 
-## 10. Variables de Entorno
+## 10. TanStack React Query
 
-### 10.1 Estructura
+### 10.1 Configuración
+
+El proyecto utiliza **TanStack React Query** (anteriormente React Query) para la gestión del estado del servidor, caché y sincronización de datos.
+
+**Configuración del QueryClient:**
+```typescript
+// lib/query-client.ts
+import { QueryClient } from '@tanstack/react-query'
+
+export function makeQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 60 * 1000, // 1 minuto
+        gcTime: 5 * 60 * 1000, // 5 minutos
+        retry: 1,
+        refetchOnWindowFocus: false,
+      },
+      mutations: {
+        retry: 0,
+      },
+    },
+  })
+}
+```
+
+**Provider en el Layout:**
+```typescript
+// app/layout.tsx
+import { QueryProvider } from '@/components/providers/query-provider'
+
+export default function RootLayout({ children }) {
+  return (
+    <html lang="en">
+      <body>
+        <QueryProvider>
+          {children}
+        </QueryProvider>
+      </body>
+    </html>
+  )
+}
+```
+
+### 10.2 Estructura de Hooks
+
+Cada módulo tiene su carpeta `hooks/` con custom hooks que conectan los server actions con React Query:
+
+```
+module-name/
+├── actions/
+│   ├── get-items.ts
+│   ├── create-item.ts
+│   └── update-item.ts
+└── hooks/
+    └── use-items.ts
+```
+
+### 10.3 Convenciones de Query Keys
+
+Las query keys siguen un patrón jerárquico y consistente:
+
+```typescript
+export const itemKeys = {
+  all: ['items'] as const,
+  lists: () => [...itemKeys.all, 'list'] as const,
+  list: (params?: FilterParams) => [...itemKeys.lists(), params] as const,
+  details: () => [...itemKeys.all, 'detail'] as const,
+  detail: (id: string) => [...itemKeys.details(), id] as const,
+}
+```
+
+### 10.4 Hooks de Queries (GET)
+
+Para obtener datos del servidor:
+
+```typescript
+export function usePharmacies(params?: { page?: number; search?: string }) {
+  return useQuery({
+    queryKey: pharmacyKeys.list(params),
+    queryFn: () => getPharmacies(params),
+  })
+}
+
+export function usePharmacy(id: string) {
+  return useQuery({
+    queryKey: pharmacyKeys.detail(id),
+    queryFn: () => getPharmacyById(id),
+    enabled: !!id, // Solo ejecutar si hay ID
+  })
+}
+```
+
+**Uso en componentes:**
+```typescript
+function PharmacyList() {
+  const { data, isLoading, error } = usePharmacies({ page: 1, search: '' })
+
+  if (isLoading) return <Loading />
+  if (error) return <Error />
+
+  return <div>{data?.data.map(pharmacy => ...)}</div>
+}
+```
+
+### 10.5 Hooks de Mutations (POST/PUT/DELETE)
+
+Para modificar datos en el servidor:
+
+```typescript
+export function useCreatePharmacy() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (data: PharmacyInput) => createPharmacy(data),
+    onSuccess: (result) => {
+      if (result.success) {
+        // Invalidar queries relacionadas para refrescar datos
+        queryClient.invalidateQueries({ queryKey: pharmacyKeys.lists() })
+        toast.success('Farmacia creada exitosamente')
+      } else {
+        toast.error(result.error || 'Error al crear farmacia')
+      }
+    },
+    onError: () => {
+      toast.error('Error al crear farmacia')
+    },
+  })
+}
+```
+
+**Uso en componentes:**
+```typescript
+function CreatePharmacyForm() {
+  const createPharmacy = useCreatePharmacy()
+
+  const onSubmit = async (data: PharmacyInput) => {
+    await createPharmacy.mutateAsync(data)
+  }
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* campos del formulario */}
+      <button disabled={createPharmacy.isPending}>
+        {createPharmacy.isPending ? 'Creando...' : 'Crear'}
+      </button>
+    </form>
+  )
+}
+```
+
+### 10.6 Invalidación de Caché
+
+Después de mutaciones, se invalidan las queries relacionadas:
+
+```typescript
+// Invalidar todas las listas
+queryClient.invalidateQueries({ queryKey: pharmacyKeys.lists() })
+
+// Invalidar un detalle específico
+queryClient.invalidateQueries({ queryKey: pharmacyKeys.detail(id) })
+
+// Invalidar múltiples queries relacionadas
+queryClient.invalidateQueries({ queryKey: pharmacyKeys.all })
+```
+
+### 10.7 Módulos con Hooks Implementados
+
+Todos los módulos del proyecto tienen hooks de React Query:
+
+- **pharmacy**: `use-pharmacies.ts`
+- **driver**: `use-drivers.ts`
+- **motorbike**: `use-motorbikes.ts`
+- **movement**: `use-movements.ts`, `use-incidents.ts`
+- **region**: `use-regions.ts`, `use-cities.ts`
+- **user**: `use-users.ts`
+- **report**: `use-reports.ts`
+- **home**: `use-dashboard.ts`
+
+### 10.8 Refetch Automático
+
+Para datos que cambian frecuentemente (dashboard, estadísticas):
+
+```typescript
+export function useTodayStats() {
+  return useQuery({
+    queryKey: dashboardKeys.todayStats(),
+    queryFn: () => getTodayStats(),
+    refetchInterval: 60000, // Refrescar cada minuto
+  })
+}
+```
+
+---
+
+## 11. Variables de Entorno
+
+### 11.1 Estructura
 
 ```bash
 # .env.local (NO commitear)
@@ -683,7 +952,7 @@ BETTER_AUTH_SECRET="your-secret-key"
 BETTER_AUTH_URL="http://localhost:3000"
 ```
 
-### 10.2 Uso en el Código
+### 11.2 Uso en el Código
 
 ```typescript
 // Acceso a variables de entorno
@@ -692,9 +961,9 @@ const databaseUrl = process.env.DATABASE_URL
 
 ---
 
-## 11. Mejores Prácticas
+## 12. Mejores Prácticas
 
-### 11.1 Organización de Código
+### 12.1 Organización de Código
 
 ✅ **Hacer:**
 - Un componente por archivo
@@ -708,7 +977,7 @@ const databaseUrl = process.env.DATABASE_URL
 - Importaciones circulares
 - Código duplicado
 
-### 11.2 Nomenclatura
+### 12.2 Nomenclatura
 
 ✅ **Hacer:**
 - Nombres descriptivos y claros
@@ -721,7 +990,7 @@ const databaseUrl = process.env.DATABASE_URL
 - Nombres de un solo carácter (excepto loops)
 - Mezclar idiomas (inglés/español)
 
-### 11.3 Comentarios
+### 12.3 Comentarios
 
 ```typescript
 // ✅ Bueno - explica el "por qué"
@@ -735,9 +1004,9 @@ const user = await createUser()
 
 ---
 
-## 12. Guía de Estilo de Código
+## 13. Guía de Estilo de Código
 
-### 12.1 TypeScript
+### 13.1 TypeScript
 
 ```typescript
 // ✅ Usar tipos explícitos en funciones públicas
@@ -756,7 +1025,7 @@ export interface User {
 export type Status = 'pending' | 'active' | 'completed'
 ```
 
-### 12.2 React Components
+### 13.2 React Components
 
 ```typescript
 // ✅ Props interface
@@ -776,7 +1045,7 @@ export function Button({ label, onClick, variant = 'primary' }: ButtonProps) {
 }
 ```
 
-### 12.3 Server Actions
+### 13.3 Server Actions
 
 ```typescript
 'use server'

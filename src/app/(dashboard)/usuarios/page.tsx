@@ -14,7 +14,7 @@ export default function UsuariosPage() {
 				</div>
 				<Link href="/usuarios/nuevo">
 					<Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
-						<Plus className="mr-2 h-4 w-4" />
+						<Plus className="h-4 w-4" />
 						Nuevo Usuario
 					</Button>
 				</Link>

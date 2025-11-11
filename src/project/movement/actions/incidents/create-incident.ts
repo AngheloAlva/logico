@@ -1,12 +1,12 @@
 "use server"
 
-import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
 
 import { incidentSchema, type IncidentInput } from "@/shared/schemas/movement.schema"
+import { createAuditLog } from "@/lib/audit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { createAuditLog } from "@/lib/audit"
 
 // Incidents
 export async function createIncident(data: IncidentInput, userId: string) {

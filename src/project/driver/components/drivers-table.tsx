@@ -21,6 +21,7 @@ import {
 	TableHeader,
 } from "@/shared/components/ui/table"
 import { Pagination } from "@/shared/components/pagination"
+import { Skeleton } from "@/shared/components/ui/skeleton"
 
 export function DriversTable() {
 	const [drivers, setDrivers] = useState<Awaited<ReturnType<typeof getDrivers>>["data"]>([])
@@ -65,11 +66,6 @@ export function DriversTable() {
 		}
 	}
 
-
-	if (loading) {
-		return <div className="py-10 text-center">Cargando motoristas...</div>
-	}
-
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center gap-4">
@@ -97,75 +93,84 @@ export function DriversTable() {
 								<TableHead className="text-right font-semibold text-green-800">Acciones</TableHead>
 							</TableRow>
 						</TableHeader>
+
 						<TableBody>
-							{drivers?.map((driver) => (
-								<TableRow key={driver.id} className="border-green-100">
-									<TableCell>
-										<div className="flex items-center gap-3">
-											<div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-												<Truck className="h-5 w-5 text-green-600" />
-											</div>
-											<div>
-												<p className="font-medium">{driver.name}</p>
-											</div>
-										</div>
-									</TableCell>
-									<TableCell>
-										<p className="font-mono text-sm">{driver.rut}</p>
-									</TableCell>
-									<TableCell>
-										<div>
-											<p className="text-sm">{driver.phone}</p>
-											<p className="text-muted-foreground text-xs">{driver.email}</p>
-										</div>
-									</TableCell>
-									<TableCell>
-										{driver.motorbike ? (
-											<Badge variant="secondary" className="bg-green-100 text-green-800">
-												{driver.motorbike.plate}
-											</Badge>
-										) : (
-											<Badge variant="secondary" className="bg-gray-100 text-gray-600">
-												Sin moto
-											</Badge>
-										)}
-									</TableCell>
-									<TableCell>
-										{driver.active ? (
-											<div className="flex items-center gap-1 text-green-600">
-												<CheckCircle className="h-4 w-4" />
-												<span className="text-sm">Activo</span>
-											</div>
-										) : (
-											<div className="flex items-center gap-1 text-gray-500">
-												<XCircle className="h-4 w-4" />
-												<span className="text-sm">Inactivo</span>
-											</div>
-										)}
-									</TableCell>
-									<TableCell className="text-right">
-										<div className="flex justify-end gap-2">
-											<Link href={`/motoristas/${driver.id}`}>
-												<Button
-													variant="ghost"
-													size="sm"
-													className="text-green-600 hover:bg-green-50 hover:text-green-700"
-												>
-													<Edit className="h-4 w-4" />
-												</Button>
-											</Link>
-											<Button
-												variant="ghost"
-												size="sm"
-												onClick={() => handleDelete(driver.id, driver.name)}
-												className="text-red-600 hover:bg-red-50 hover:text-red-700"
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</div>
-									</TableCell>
-								</TableRow>
-							))}
+							{loading
+								? Array.from({ length: pageSize }).map((_, index) => (
+										<TableRow key={index}>
+											<TableCell colSpan={6}>
+												<Skeleton className="h-16" />
+											</TableCell>
+										</TableRow>
+									))
+								: drivers?.map((driver) => (
+										<TableRow key={driver.id} className="border-green-100">
+											<TableCell>
+												<div className="flex items-center gap-3">
+													<div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+														<Truck className="h-5 w-5 text-green-600" />
+													</div>
+													<div>
+														<p className="font-medium">{driver.name}</p>
+													</div>
+												</div>
+											</TableCell>
+											<TableCell>
+												<p className="font-mono text-sm">{driver.rut}</p>
+											</TableCell>
+											<TableCell>
+												<div>
+													<p className="text-sm">{driver.phone}</p>
+													<p className="text-muted-foreground text-xs">{driver.email}</p>
+												</div>
+											</TableCell>
+											<TableCell>
+												{driver.motorbike ? (
+													<Badge variant="secondary" className="bg-green-100 text-green-800">
+														{driver.motorbike.plate}
+													</Badge>
+												) : (
+													<Badge variant="secondary" className="bg-gray-100 text-gray-600">
+														Sin moto
+													</Badge>
+												)}
+											</TableCell>
+											<TableCell>
+												{driver.active ? (
+													<div className="flex items-center gap-1 text-green-600">
+														<CheckCircle className="h-4 w-4" />
+														<span className="text-sm">Activo</span>
+													</div>
+												) : (
+													<div className="flex items-center gap-1 text-gray-500">
+														<XCircle className="h-4 w-4" />
+														<span className="text-sm">Inactivo</span>
+													</div>
+												)}
+											</TableCell>
+											<TableCell className="text-right">
+												<div className="flex justify-end gap-2">
+													<Link href={`/motoristas/${driver.id}`}>
+														<Button
+															variant="ghost"
+															size="sm"
+															className="text-green-600 hover:bg-green-50 hover:text-green-700"
+														>
+															<Edit className="h-4 w-4" />
+														</Button>
+													</Link>
+													<Button
+														variant="ghost"
+														size="sm"
+														onClick={() => handleDelete(driver.id, driver.name)}
+														className="text-red-600 hover:bg-red-50 hover:text-red-700"
+													>
+														<Trash2 className="h-4 w-4" />
+													</Button>
+												</div>
+											</TableCell>
+										</TableRow>
+									))}
 						</TableBody>
 					</Table>
 					<Pagination

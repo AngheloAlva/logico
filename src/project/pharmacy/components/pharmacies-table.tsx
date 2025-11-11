@@ -7,6 +7,7 @@ import Link from "next/link"
 
 import { Card, CardContent } from "@/shared/components/ui/card"
 import { deletePharmacy } from "../actions/delete-pharmacy"
+import { Pagination } from "@/shared/components/pagination"
 import { getPharmacies } from "../actions/get-pharmacies"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
@@ -18,7 +19,7 @@ import {
 	TableHead,
 	TableHeader,
 } from "@/shared/components/ui/table"
-import { Pagination } from "@/shared/components/pagination"
+import { Skeleton } from "@/shared/components/ui/skeleton"
 
 interface Pharmacy {
 	id: string
@@ -74,11 +75,6 @@ export function PharmaciesTable() {
 		}
 	}
 
-
-	if (loading) {
-		return <div className="py-10 text-center">Cargando farmacias...</div>
-	}
-
 	return (
 		<div className="space-y-4">
 			<div className="flex items-center gap-4">
@@ -104,58 +100,68 @@ export function PharmaciesTable() {
 								<TableHead className="text-right font-semibold text-green-800">Acciones</TableHead>
 							</TableRow>
 						</TableHeader>
+
 						<TableBody>
-							{pharmacies.map((pharmacy) => (
-								<TableRow key={pharmacy.id} className="border-green-100">
-									<TableCell>
-										<div className="flex items-center gap-3">
-											<div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-												<HospitalIcon className="h-5 w-5 text-green-600" />
-											</div>
-											<div>
-												<p className="font-medium">{pharmacy.name}</p>
-												<p className="text-muted-foreground text-sm">{pharmacy.address}</p>
-											</div>
-										</div>
-									</TableCell>
-									<TableCell>
-										<div>
-											<p className="text-sm font-medium">{pharmacy.city.name}</p>
-											<p className="text-muted-foreground text-xs">{pharmacy.region.name}</p>
-										</div>
-									</TableCell>
-									<TableCell>
-										<div>
-											<p className="text-sm font-medium">{pharmacy.contactName}</p>
-											<p className="text-muted-foreground text-xs">{pharmacy.contactPhone}</p>
-											<p className="text-muted-foreground text-xs">{pharmacy.contactEmail}</p>
-										</div>
-									</TableCell>
-									<TableCell className="text-right">
-										<div className="flex justify-end gap-2">
-											<Link href={`/farmacias/${pharmacy.id}`}>
-												<Button
-													variant="ghost"
-													size="sm"
-													className="text-green-600 hover:bg-green-50 hover:text-green-700"
-												>
-													<Edit className="h-4 w-4" />
-												</Button>
-											</Link>
-											<Button
-												variant="ghost"
-												size="sm"
-												onClick={() => handleDelete(pharmacy.id, pharmacy.name)}
-												className="text-red-600 hover:bg-red-50 hover:text-red-700"
-											>
-												<Trash2 className="h-4 w-4" />
-											</Button>
-										</div>
-									</TableCell>
-								</TableRow>
-							))}
+							{loading
+								? Array.from({ length: pageSize }).map((_, index) => (
+										<TableRow key={index}>
+											<TableCell colSpan={4}>
+												<Skeleton className="h-12" />
+											</TableCell>
+										</TableRow>
+									))
+								: pharmacies.map((pharmacy) => (
+										<TableRow key={pharmacy.id} className="border-green-100">
+											<TableCell>
+												<div className="flex items-center gap-3">
+													<div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+														<HospitalIcon className="h-5 w-5 text-green-600" />
+													</div>
+													<div>
+														<p className="font-medium">{pharmacy.name}</p>
+														<p className="text-muted-foreground text-sm">{pharmacy.address}</p>
+													</div>
+												</div>
+											</TableCell>
+											<TableCell>
+												<div>
+													<p className="text-sm font-medium">{pharmacy.city.name}</p>
+													<p className="text-muted-foreground text-xs">{pharmacy.region.name}</p>
+												</div>
+											</TableCell>
+											<TableCell>
+												<div>
+													<p className="text-sm font-medium">{pharmacy.contactName}</p>
+													<p className="text-muted-foreground text-xs">{pharmacy.contactPhone}</p>
+													<p className="text-muted-foreground text-xs">{pharmacy.contactEmail}</p>
+												</div>
+											</TableCell>
+											<TableCell className="text-right">
+												<div className="flex justify-end">
+													<Link href={`/farmacias/${pharmacy.id}`}>
+														<Button
+															size="sm"
+															variant="ghost"
+															className="text-green-600 hover:bg-green-50 hover:text-green-700"
+														>
+															<Edit className="h-4 w-4" />
+														</Button>
+													</Link>
+													<Button
+														size="sm"
+														variant="ghost"
+														onClick={() => handleDelete(pharmacy.id, pharmacy.name)}
+														className="text-red-600 hover:bg-red-50 hover:text-red-700"
+													>
+														<Trash2 className="h-4 w-4" />
+													</Button>
+												</div>
+											</TableCell>
+										</TableRow>
+									))}
 						</TableBody>
 					</Table>
+
 					<Pagination
 						currentPage={currentPage}
 						totalPages={totalPages}

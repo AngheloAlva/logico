@@ -14,7 +14,7 @@ export default function RegionesPage() {
 				</div>
 				<Link href="/regiones/nueva">
 					<Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
-						<Plus className="mr-2 h-4 w-4" />
+						<Plus className="h-4 w-4" />
 						Nueva Región
 					</Button>
 				</Link>

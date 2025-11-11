@@ -4,11 +4,7 @@ import path from "path"
 async function inspectExcel() {
 	console.log("📊 Inspeccionando archivo Excel de permisos de circulación...")
 
-	const excelPath = path.join(
-		process.cwd(),
-		"base-data",
-		"permiso-de-circulacion-2023.xlsx"
-	)
+	const excelPath = path.join(process.cwd(), "base-data", "permiso-de-circulacion-2023.xlsx")
 	console.log(`📁 Leyendo archivo: ${excelPath}`)
 
 	const workbook = XLSX.readFile(excelPath)
@@ -18,7 +14,8 @@ async function inspectExcel() {
 	console.log(`\n🔍 Inspeccionando hoja: ${sheetName}`)
 
 	const worksheet = workbook.Sheets[sheetName]
-	const data: any[] = XLSX.utils.sheet_to_json(worksheet)
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const data = XLSX.utils.sheet_to_json(worksheet) as any[]
 
 	console.log(`📋 Total de filas: ${data.length}`)
 

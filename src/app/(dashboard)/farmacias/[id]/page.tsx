@@ -128,9 +128,8 @@ export default function EditarFarmaciaPage() {
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-4">
 					<Link href="/farmacias">
-						<Button variant="ghost" size="sm" className="text-green-600 hover:bg-green-50">
-							<ArrowLeft className="mr-2 h-4 w-4" />
-							Volver
+						<Button variant="outline" size="icon" className="text-green-600 hover:bg-green-50">
+							<ArrowLeft className="h-4 w-4" />
 						</Button>
 					</Link>
 					<div>
@@ -143,7 +142,7 @@ export default function EditarFarmaciaPage() {
 					onClick={handleDelete}
 					className="bg-red-600 hover:bg-red-700"
 				>
-					<Trash2 className="mr-2 h-4 w-4" />
+					<Trash2 className="h-4 w-4" />
 					Eliminar Farmacia
 				</Button>
 			</div>
@@ -186,7 +185,7 @@ export default function EditarFarmaciaPage() {
 									onValueChange={(value) => setFormData({ ...formData, regionId: value })}
 									required
 								>
-									<SelectTrigger className="focus:border-green-500 focus:ring-green-500">
+									<SelectTrigger className="w-full focus:border-green-500 focus:ring-green-500">
 										<SelectValue placeholder="Selecciona una región" />
 									</SelectTrigger>
 									<SelectContent>
@@ -207,7 +206,7 @@ export default function EditarFarmaciaPage() {
 									disabled={!formData.regionId}
 									required
 								>
-									<SelectTrigger className="focus:border-green-500 focus:ring-green-500">
+									<SelectTrigger className="w-full focus:border-green-500 focus:ring-green-500">
 										<SelectValue placeholder="Selecciona una ciudad" />
 									</SelectTrigger>
 									<SelectContent>
@@ -280,7 +279,7 @@ export default function EditarFarmaciaPage() {
 						disabled={isLoading}
 						className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
 					>
-						<Save className="mr-2 h-4 w-4" />
+						<Save className="h-4 w-4" />
 						{isLoading ? "Guardando..." : "Guardar Cambios"}
 					</Button>
 				</div>

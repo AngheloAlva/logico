@@ -33,7 +33,10 @@ export function NavMain({
 						<Link href={item.href}>
 							<SidebarMenuButton
 								tooltip={item.title}
-								className={cn("", pathname === item.href && "bg-accent text-accent-foreground")}
+								className={cn(
+									"",
+									pathname.includes(item.href) && "text-primary-foreground bg-green-600"
+								)}
 							>
 								{item.icon && <item.icon />}
 								<span>{item.title}</span>

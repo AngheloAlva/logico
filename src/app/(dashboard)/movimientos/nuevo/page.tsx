@@ -102,9 +102,8 @@ export default function NuevoMovimientoPage() {
 		<div className="space-y-6">
 			<div className="flex items-center gap-4">
 				<Link href="/movimientos">
-					<Button variant="ghost" size="sm" className="text-green-600 hover:bg-green-50">
-						<ArrowLeft className="mr-2 h-4 w-4" />
-						Volver
+					<Button variant="outline" size="icon" className="text-green-600 hover:bg-green-50">
+						<ArrowLeft className="h-4 w-4" />
 					</Button>
 				</Link>
 				<div>
@@ -248,7 +247,7 @@ export default function NuevoMovimientoPage() {
 							onClick={addSegment}
 							className="border-green-300 text-green-600 hover:bg-green-50"
 						>
-							<Plus className="mr-2 h-4 w-4" />
+							<Plus className="h-4 w-4" />
 							Agregar Dirección
 						</Button>
 					</CardHeader>
@@ -293,7 +292,7 @@ export default function NuevoMovimientoPage() {
 						disabled={isLoading}
 						className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
 					>
-						<Save className="mr-2 h-4 w-4" />
+						<Save className="h-4 w-4" />
 						{isLoading ? "Guardando..." : "Crear Movimiento"}
 					</Button>
 				</div>

@@ -93,9 +93,8 @@ export default function EditarMotoristaPage() {
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-4">
 					<Link href="/motoristas">
-						<Button variant="ghost" size="sm" className="text-green-600 hover:bg-green-50">
-							<ArrowLeft className="mr-2 h-4 w-4" />
-							Volver
+						<Button variant="outline" size="icon" className="text-green-600 hover:bg-green-50">
+							<ArrowLeft className="h-4 w-4" />
 						</Button>
 					</Link>
 					<div>
@@ -108,7 +107,7 @@ export default function EditarMotoristaPage() {
 					onClick={handleDelete}
 					className="bg-red-600 hover:bg-red-700"
 				>
-					<Trash2 className="mr-2 h-4 w-4" />
+					<Trash2 className="h-4 w-4" />
 					Eliminar Motorista
 				</Button>
 			</div>
@@ -215,7 +214,7 @@ export default function EditarMotoristaPage() {
 						disabled={isLoading}
 						className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700"
 					>
-						<Save className="mr-2 h-4 w-4" />
+						<Save className="h-4 w-4" />
 						{isLoading ? "Guardando..." : "Guardar Cambios"}
 					</Button>
 				</div>

@@ -105,9 +105,8 @@ export default function MovimientoDetallePage() {
 		<div className="space-y-6">
 			<div className="flex items-center gap-4">
 				<Link href="/movimientos">
-					<Button variant="ghost" size="sm" className="text-green-600 hover:bg-green-50">
-						<ArrowLeft className="mr-2 h-4 w-4" />
-						Volver
+					<Button variant="outline" size="icon" className="text-green-600 hover:bg-green-50">
+						<ArrowLeft className="h-4 w-4" />
 					</Button>
 				</Link>
 				<div className="flex-1">
@@ -128,7 +127,7 @@ export default function MovimientoDetallePage() {
 							disabled={updating}
 							className="bg-blue-600 hover:bg-blue-700"
 						>
-							<Clock className="mr-2 h-4 w-4" />
+							<Clock className="h-4 w-4" />
 							Registrar Salida
 						</Button>
 					)}
@@ -138,7 +137,7 @@ export default function MovimientoDetallePage() {
 							disabled={updating}
 							className="bg-green-600 hover:bg-green-700"
 						>
-							<CheckCircle className="mr-2 h-4 w-4" />
+							<CheckCircle className="h-4 w-4" />
 							Registrar Entrega
 						</Button>
 					)}
@@ -278,7 +277,7 @@ export default function MovimientoDetallePage() {
 						size="sm"
 						className="border-orange-300 text-orange-600 hover:bg-orange-50"
 					>
-						<Plus className="mr-2 h-4 w-4" />
+						<Plus className="h-4 w-4" />
 						Reportar Incidencia
 					</Button>
 				</CardHeader>

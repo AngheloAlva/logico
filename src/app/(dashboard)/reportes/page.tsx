@@ -1,7 +1,8 @@
 "use client"
 
-import { Download, FileText, Calendar, TrendingUp, Package, CheckCircle } from "lucide-react"
+import { Download, FileText, TrendingUp, Package, CheckCircle, CalendarIcon } from "lucide-react"
 import { useState, useEffect } from "react"
+import { es } from "date-fns/locale"
 import { toast } from "sonner"
 
 import { getDailyReport } from "@/project/report/actions/get-daily-report"
@@ -10,8 +11,8 @@ import { getStatistics } from "@/project/report/actions/get-statistics"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import { Separator } from "@/shared/components/ui/separator"
+import { Calendar } from "@/shared/components/ui/calendar"
 import { Button } from "@/shared/components/ui/button"
-import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
 import {
 	Select,
@@ -22,9 +23,11 @@ import {
 } from "@/shared/components/ui/select"
 
 import type { Pharmacy } from "@/generated/prisma"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { format } from "date-fns"
 
 export default function ReportesPage() {
-	const [reportDate, setReportDate] = useState("")
+	const [reportDate, setReportDate] = useState<Date | null>(null)
 	const [pharmacyId, setPharmacyId] = useState("all")
 	const [isGenerating, setIsGenerating] = useState(false)
 	const [loading, setLoading] = useState(true)
@@ -195,7 +198,7 @@ export default function ReportesPage() {
 				<Card className="border-blue-200 bg-gradient-to-br from-white to-blue-50/30">
 					<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
 						<CardTitle className="text-sm font-medium text-blue-700">Tiempo Promedio</CardTitle>
-						<Calendar className="h-5 w-5 text-blue-600" />
+						<CalendarIcon className="h-5 w-5 text-blue-600" />
 					</CardHeader>
 					<CardContent>
 						<div className="text-3xl font-bold text-blue-800">{stats.avgDeliveryTime} min</div>
@@ -239,14 +242,22 @@ export default function ReportesPage() {
 					<div className="grid gap-4 md:grid-cols-2">
 						<div className="space-y-2">
 							<Label htmlFor="date">Fecha *</Label>
-							<Input
-								id="date"
-								type="date"
-								value={reportDate}
-								onChange={(e) => setReportDate(e.target.value)}
-								required
-								className="focus:border-green-500 focus:ring-green-500"
-							/>
+							<Popover>
+								<PopoverTrigger asChild>
+									<Button variant="outline" className="w-full justify-start text-left font-normal">
+										{reportDate ? format(reportDate, "dd/MM/yyyy") : "Seleccionar fecha"}
+									</Button>
+								</PopoverTrigger>
+								<PopoverContent>
+									<Calendar
+										required
+										locale={es}
+										mode="single"
+										onSelect={setReportDate}
+										selected={reportDate ? new Date(reportDate) : undefined}
+									/>
+								</PopoverContent>
+							</Popover>
 						</div>
 
 						<div className="space-y-2">
@@ -278,7 +289,7 @@ export default function ReportesPage() {
 								variant="outline"
 								className="flex-1 border-green-300 hover:bg-green-50"
 							>
-								<Download className="mr-2 h-4 w-4" />
+								<Download className="h-4 w-4" />
 								Exportar CSV
 							</Button>
 							<Button
@@ -287,7 +298,7 @@ export default function ReportesPage() {
 								variant="outline"
 								className="flex-1 border-green-300 hover:bg-green-50"
 							>
-								<Download className="mr-2 h-4 w-4" />
+								<Download className="h-4 w-4" />
 								Exportar PDF
 							</Button>
 						</div>

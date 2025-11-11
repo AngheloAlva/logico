@@ -14,7 +14,7 @@ export default function MotosPage() {
 				</div>
 				<Link href="/motos/nueva">
 					<Button className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700">
-						<Plus className="mr-2 h-4 w-4" />
+						<Plus className="h-4 w-4" />
 						Nueva Moto
 					</Button>
 				</Link>

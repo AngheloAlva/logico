@@ -84,7 +84,7 @@ export function AppSidebar({
 	}
 
 	return (
-		<Sidebar>
+		<Sidebar variant="floating">
 			<SidebarHeader className="flex flex-row items-center gap-2">
 				<div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
 					<TruckIcon className="h-7 w-7 text-white" />

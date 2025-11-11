@@ -4,6 +4,7 @@ import { Toaster } from "sonner"
 import "./globals.css"
 
 import type { Metadata } from "next"
+import { QueryProvider } from "@/components/providers/query-provider"
 
 const geistSans = Geist({
 	variable: "--font-geist-sans",
@@ -28,8 +29,10 @@ export default function RootLayout({
 	return (
 		<html lang="en">
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-				{children}
-				<Toaster position="top-center" richColors />
+				<QueryProvider>
+					{children}
+					<Toaster position="top-center" richColors />
+				</QueryProvider>
 			</body>
 		</html>
 	)

@@ -105,7 +105,7 @@ export function IncidentForm({ movementId, onClose, onSuccess }: IncidentFormPro
 
 					<div className="flex justify-end gap-2">
 						<Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
-							<X className="mr-2 h-4 w-4" />
+							<X className="h-4 w-4" />
 							Cancelar
 						</Button>
 						<Button
@@ -113,7 +113,7 @@ export function IncidentForm({ movementId, onClose, onSuccess }: IncidentFormPro
 							disabled={isLoading}
 							className="bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700"
 						>
-							<Save className="mr-2 h-4 w-4" />
+							<Save className="h-4 w-4" />
 							{isLoading ? "Guardando..." : "Reportar Incidencia"}
 						</Button>
 					</div>

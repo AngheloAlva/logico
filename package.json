@@ -18,7 +18,8 @@
     "production:build": "prisma generate && next build",
     "import:pharmacies": "dotenv -e .env.local -- tsx ./prisma/scripts/import-pharmacies.ts",
     "import:motorcycles": "dotenv -e .env.local -- tsx ./prisma/scripts/import-motorcycles.ts",
-    "create:users": "dotenv -e .env.local -- tsx ./prisma/scripts/create-users.ts"
+    "create:users": "dotenv -e .env.local -- tsx ./prisma/scripts/create-users.ts",
+    "seed:drivers-movements": "dotenv -e .env.local -- tsx ./prisma/scripts/seed-drivers-and-movements.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -49,6 +50,7 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@tanstack/react-query": "^5.90.7",
     "better-auth": "^1.3.27",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

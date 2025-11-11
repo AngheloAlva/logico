@@ -2,8 +2,8 @@ import { redirect } from "next/navigation"
 import { headers } from "next/headers"
 import { auth } from "@/lib/auth"
 
-import { SidebarProvider } from "@/shared/components/ui/sidebar"
 import { AppSidebar } from "@/shared/components/sidebar/app-sidebar"
+import { SidebarProvider } from "@/shared/components/ui/sidebar"
 import AppHeader from "@/shared/components/sidebar/app-header"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {

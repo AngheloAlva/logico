@@ -8,6 +8,8 @@ import Link from "next/link"
 import { getUsers } from "../actions/get-users"
 
 import { Card, CardContent } from "@/shared/components/ui/card"
+import { Pagination } from "@/shared/components/pagination"
+import { Skeleton } from "@/shared/components/ui/skeleton"
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Badge } from "@/shared/components/ui/badge"
@@ -19,7 +21,6 @@ import {
 	TableHead,
 	TableHeader,
 } from "@/shared/components/ui/table"
-import { Pagination } from "@/shared/components/pagination"
 
 const roleConfig = {
 	admin: {
@@ -46,6 +47,7 @@ export function UsersTable() {
 	const [pageSize, setPageSize] = useState(10)
 	const [totalItems, setTotalItems] = useState(0)
 	const [totalPages, setTotalPages] = useState(0)
+	const [loading, setLoading] = useState(true)
 
 	const loadUsers = async () => {
 		try {
@@ -53,6 +55,7 @@ export function UsersTable() {
 			setUsers(response.data)
 			setTotalItems(response.total || 0)
 			setTotalPages(response.totalPages || 0)
+			setLoading(false)
 		} catch (error) {
 			console.error("Error al cargar usuarios:", error)
 			toast.error("Error al cargar usuarios")
@@ -77,7 +80,7 @@ export function UsersTable() {
 						placeholder="Buscar usuarios..."
 						value={searchTerm}
 						onChange={(e) => setSearchTerm(e.target.value)}
-						className="pl-9 focus:border-green-500 focus:ring-green-500"
+						className="bg-white pl-9 focus:border-green-500 focus:ring-green-500"
 					/>
 				</div>
 			</div>
@@ -94,64 +97,73 @@ export function UsersTable() {
 								<TableHead className="text-right font-semibold text-green-800">Acciones</TableHead>
 							</TableRow>
 						</TableHeader>
-						<TableBody>
-							{users.map((user) => {
-								const role = roleConfig[user.role as keyof typeof roleConfig]
-								const RoleIcon = role.icon
 
-								return (
-									<TableRow key={user.id} className="border-green-100">
-										<TableCell>
-											<div className="flex items-center gap-3">
-												<div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-													<User className="h-5 w-5 text-green-600" />
-												</div>
-												<div>
-													<p className="font-medium">{user.name}</p>
-													{user.banned && (
-														<Badge
-															variant="secondary"
-															className="mt-1 bg-red-100 text-xs text-red-800"
+						<TableBody>
+							{loading
+								? Array.from({ length: pageSize }).map((_, index) => (
+										<TableRow key={index}>
+											<TableCell colSpan={5}>
+												<Skeleton className="h-10" />
+											</TableCell>
+										</TableRow>
+									))
+								: users.map((user) => {
+										const role = roleConfig[user.role as keyof typeof roleConfig]
+										const RoleIcon = role.icon
+
+										return (
+											<TableRow key={user.id} className="border-green-100">
+												<TableCell>
+													<div className="flex items-center gap-3">
+														<div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+															<User className="h-5 w-5 text-green-600" />
+														</div>
+														<div>
+															<p className="font-medium">{user.name}</p>
+															{user.banned && (
+																<Badge
+																	variant="secondary"
+																	className="mt-1 bg-red-100 text-xs text-red-800"
+																>
+																	Bloqueado
+																</Badge>
+															)}
+														</div>
+													</div>
+												</TableCell>
+												<TableCell>
+													<p className="text-sm">{user.email}</p>
+												</TableCell>
+												<TableCell>
+													<Badge variant="secondary" className={role.color}>
+														<RoleIcon className="mr-1 h-3 w-3" />
+														{role.label}
+													</Badge>
+												</TableCell>
+												<TableCell>{user.createdAt.toLocaleDateString("es-CL")}</TableCell>
+												<TableCell className="text-right">
+													<div className="flex justify-end gap-2">
+														<Link href={`/usuarios/${user.id}`}>
+															<Button
+																variant="ghost"
+																size="sm"
+																className="text-green-600 hover:bg-green-50 hover:text-green-700"
+															>
+																<Edit className="h-4 w-4" />
+															</Button>
+														</Link>
+														<Button
+															variant="ghost"
+															size="sm"
+															className="text-red-600 hover:bg-red-50 hover:text-red-700"
 														>
-															Bloqueado
-														</Badge>
-													)}
-												</div>
-											</div>
-										</TableCell>
-										<TableCell>
-											<p className="text-sm">{user.email}</p>
-										</TableCell>
-										<TableCell>
-											<Badge variant="secondary" className={role.color}>
-												<RoleIcon className="mr-1 h-3 w-3" />
-												{role.label}
-											</Badge>
-										</TableCell>
-										<TableCell>{user.createdAt.toLocaleDateString("es-CL")}</TableCell>
-										<TableCell className="text-right">
-											<div className="flex justify-end gap-2">
-												<Link href={`/usuarios/${user.id}`}>
-													<Button
-														variant="ghost"
-														size="sm"
-														className="text-green-600 hover:bg-green-50 hover:text-green-700"
-													>
-														<Edit className="h-4 w-4" />
-													</Button>
-												</Link>
-												<Button
-													variant="ghost"
-													size="sm"
-													className="text-red-600 hover:bg-red-50 hover:text-red-700"
-												>
-													<Trash2 className="h-4 w-4" />
-												</Button>
-											</div>
-										</TableCell>
-									</TableRow>
-								)
-							})}
+															<Trash2 className="h-4 w-4" />
+														</Button>
+													</div>
+												</TableCell>
+											</TableRow>
+										)
+									})}
 						</TableBody>
 					</Table>
 					<Pagination

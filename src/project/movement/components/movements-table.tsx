@@ -37,6 +37,7 @@ import {
 	SelectContent,
 } from "@/shared/components/ui/select"
 import { Pagination } from "@/shared/components/pagination"
+import { Skeleton } from "@/shared/components/ui/skeleton"
 
 const statusConfig = {
 	PENDING: {
@@ -110,10 +111,6 @@ export function MovementsTable() {
 		return matchesStatus
 	})
 
-	if (loading) {
-		return <div className="py-10 text-center">Cargando movimientos...</div>
-	}
-
 	return (
 		<div className="space-y-4">
 			<div className="flex flex-col gap-4 sm:flex-row">
@@ -153,70 +150,79 @@ export function MovementsTable() {
 								<TableHead className="text-right font-semibold text-green-800">Acciones</TableHead>
 							</TableRow>
 						</TableHeader>
-						<TableBody>
-							{filteredMovements?.map((movement) => {
-								const status = statusConfig[movement.status as keyof typeof statusConfig]
-								const StatusIcon = status.icon
 
-								return (
-									<TableRow key={movement.id} className="border-green-100">
-										<TableCell>
-											<div className="flex items-center gap-2">
-												<div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
-													<Package className="h-4 w-4 text-green-600" />
-												</div>
-												<div>
-													<p className="font-mono text-sm font-medium">{movement.number}</p>
-													{movement.hasRecipe && (
-														<Badge
-															variant="secondary"
-															className="mt-1 bg-purple-100 text-xs text-purple-800"
+						<TableBody>
+							{loading
+								? Array.from({ length: pageSize }).map((_, index) => (
+										<TableRow key={index}>
+											<TableCell colSpan={6}>
+												<Skeleton className="h-10" />
+											</TableCell>
+										</TableRow>
+									))
+								: filteredMovements?.map((movement) => {
+										const status = statusConfig[movement.status as keyof typeof statusConfig]
+										const StatusIcon = status.icon
+
+										return (
+											<TableRow key={movement.id} className="border-green-100">
+												<TableCell>
+													<div className="flex items-center gap-2">
+														<div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+															<Package className="h-4 w-4 text-green-600" />
+														</div>
+														<div>
+															<p className="font-mono text-sm font-medium">{movement.number}</p>
+															{movement.hasRecipe && (
+																<Badge
+																	variant="secondary"
+																	className="mt-1 bg-purple-100 text-xs text-purple-800"
+																>
+																	Con Receta
+																</Badge>
+															)}
+														</div>
+													</div>
+												</TableCell>
+												<TableCell>
+													<p className="text-sm">{movement.pharmacy?.name || "Sin asignar"}</p>
+												</TableCell>
+												<TableCell>
+													<p className="text-sm">{movement.driver?.name || "Sin asignar"}</p>
+												</TableCell>
+												<TableCell>
+													<p className="text-sm">{movement.address}</p>
+												</TableCell>
+												<TableCell>
+													<Badge variant="secondary" className={status.color}>
+														<StatusIcon className="mr-1 h-3 w-3" />
+														{status.label}
+													</Badge>
+												</TableCell>
+												<TableCell className="text-right">
+													<div className="flex justify-end gap-2">
+														<Link href={`/movimientos/${movement.id}`}>
+															<Button
+																variant="ghost"
+																size="sm"
+																className="text-green-600 hover:bg-green-50 hover:text-green-700"
+															>
+																<Eye className="h-4 w-4" />
+															</Button>
+														</Link>
+														<Button
+															variant="ghost"
+															size="sm"
+															onClick={() => handleDelete(movement.id, movement.number)}
+															className="text-red-600 hover:bg-red-50 hover:text-red-700"
 														>
-															Con Receta
-														</Badge>
-													)}
-												</div>
-											</div>
-										</TableCell>
-										<TableCell>
-											<p className="text-sm">{movement.pharmacy?.name || "Sin asignar"}</p>
-										</TableCell>
-										<TableCell>
-											<p className="text-sm">{movement.driver?.name || "Sin asignar"}</p>
-										</TableCell>
-										<TableCell>
-											<p className="text-sm">{movement.address}</p>
-										</TableCell>
-										<TableCell>
-											<Badge variant="secondary" className={status.color}>
-												<StatusIcon className="mr-1 h-3 w-3" />
-												{status.label}
-											</Badge>
-										</TableCell>
-										<TableCell className="text-right">
-											<div className="flex justify-end gap-2">
-												<Link href={`/movimientos/${movement.id}`}>
-													<Button
-														variant="ghost"
-														size="sm"
-														className="text-green-600 hover:bg-green-50 hover:text-green-700"
-													>
-														<Eye className="h-4 w-4" />
-													</Button>
-												</Link>
-												<Button
-													variant="ghost"
-													size="sm"
-													onClick={() => handleDelete(movement.id, movement.number)}
-													className="text-red-600 hover:bg-red-50 hover:text-red-700"
-												>
-													<Trash2 className="h-4 w-4" />
-												</Button>
-											</div>
-										</TableCell>
-									</TableRow>
-								)
-							})}
+															<Trash2 className="h-4 w-4" />
+														</Button>
+													</div>
+												</TableCell>
+											</TableRow>
+										)
+									})}
 						</TableBody>
 					</Table>
 					<Pagination
