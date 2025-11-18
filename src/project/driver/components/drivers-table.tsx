@@ -1,6 +1,6 @@
 "use client"
 
-import { Edit, Trash2, Truck, Search, CheckCircle, XCircle } from "lucide-react"
+import { Edit, Trash2, Search, CheckCircle, XCircle, User } from "lucide-react"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
 import Link from "next/link"
@@ -99,19 +99,21 @@ export function DriversTable() {
 								? Array.from({ length: pageSize }).map((_, index) => (
 										<TableRow key={index}>
 											<TableCell colSpan={6}>
-												<Skeleton className="h-16" />
+												<Skeleton className="h-8" />
 											</TableCell>
 										</TableRow>
 									))
 								: drivers?.map((driver) => (
 										<TableRow key={driver.id} className="border-green-100">
 											<TableCell>
-												<div className="flex items-center gap-3">
-													<div className="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-														<Truck className="h-5 w-5 text-green-600" />
+												<div className="flex items-center gap-2">
+													<div className="flex h-8 w-8 items-center justify-center rounded-full bg-green-100">
+														<User className="h-5 w-5 text-green-600" />
 													</div>
 													<div>
-														<p className="font-medium">{driver.name}</p>
+														<p className="font-medium">
+															{driver.firstName} {driver.paternalLastName} {driver.maternalLastName}
+														</p>
 													</div>
 												</div>
 											</TableCell>
@@ -125,9 +127,9 @@ export function DriversTable() {
 												</div>
 											</TableCell>
 											<TableCell>
-												{driver.motorbike ? (
+												{driver.motorbikes.length > 0 ? (
 													<Badge variant="secondary" className="bg-green-100 text-green-800">
-														{driver.motorbike.plate}
+														{driver.motorbikes[0].plate}
 													</Badge>
 												) : (
 													<Badge variant="secondary" className="bg-gray-100 text-gray-600">
@@ -162,7 +164,7 @@ export function DriversTable() {
 													<Button
 														variant="ghost"
 														size="sm"
-														onClick={() => handleDelete(driver.id, driver.name)}
+														onClick={() => handleDelete(driver.id, driver.firstName)}
 														className="text-red-600 hover:bg-red-50 hover:text-red-700"
 													>
 														<Trash2 className="h-4 w-4" />

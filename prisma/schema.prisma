@@ -92,18 +92,32 @@ model Region {
   name       String
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
-  cities     City[]
+  provinces  Province[]
   pharmacies Pharmacy[]
   drivers    Driver[]
 
   @@map("region")
 }
 
-model City {
+model Province {
   id         String     @id @default(uuid())
   name       String
   regionId   String
   region     Region     @relation(fields: [regionId], references: [id], onDelete: Cascade)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  cities     City[]
+  pharmacies Pharmacy[]
+  drivers    Driver[]
+
+  @@map("province")
+}
+
+model City {
+  id         String     @id @default(uuid())
+  name       String
+  provinceId String
+  province   Province   @relation(fields: [provinceId], references: [id], onDelete: Cascade)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   pharmacies Pharmacy[]
@@ -113,64 +127,114 @@ model City {
 }
 
 model Pharmacy {
-  id           String     @id @default(uuid())
-  name         String
-  address      String
-  contactPhone String
-  contactEmail String
-  contactName  String
-  regionId     String
-  region       Region     @relation(fields: [regionId], references: [id])
-  cityId       String
-  city         City       @relation(fields: [cityId], references: [id])
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  movements    Movement[]
-  auditLogs    AuditLog[]
+  id          String     @id @default(uuid())
+  code        String     @unique
+  name        String
+  address     String
+  phone       String
+  openingTime String
+  closingTime String
+  latitude    Float
+  longitude   Float
+  regionId    String
+  region      Region     @relation(fields: [regionId], references: [id])
+  provinceId  String
+  province    Province   @relation(fields: [provinceId], references: [id])
+  cityId      String
+  city        City       @relation(fields: [cityId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  movements   Movement[]
+  auditLogs   AuditLog[]
 
   @@map("pharmacy")
 }
 
 model Driver {
-  id         String     @id @default(uuid())
-  name       String
-  rut        String     @unique
-  email      String
-  phone      String
-  licenseUrl String?
-  active     Boolean    @default(true)
-  address    String?
-  regionId   String?
-  region     Region?    @relation(fields: [regionId], references: [id])
-  cityId     String?
-  city       City?      @relation(fields: [cityId], references: [id])
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  motorbike  Motorbike?
-  movements  Movement[]
-  auditLogs  AuditLog[]
+  id                   String             @id @default(uuid())
+  code                 String             @unique
+  rut                  String             @unique
+  passport             String?
+  firstName            String
+  paternalLastName     String
+  maternalLastName     String
+  birthDate            DateTime
+  address              String
+  phone                String
+  email                String
+  hasPersonalMotorbike Boolean            @default(false)
+  licenseFileUrl       String?
+  licenseLastCheckDate DateTime?
+  licenseExpiryDate    DateTime?
+  active               Boolean            @default(true)
+  regionId             String
+  region               Region             @relation(fields: [regionId], references: [id])
+  provinceId           String
+  province             Province           @relation(fields: [provinceId], references: [id])
+  cityId               String
+  city                 City               @relation(fields: [cityId], references: [id])
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+  emergencyContacts    EmergencyContact[]
+  motorbikes           Motorbike[]
+  movements            Movement[]
+  auditLogs            AuditLog[]
 
   @@map("driver")
 }
 
+model EmergencyContact {
+  id           String   @id @default(uuid())
+  relationship String
+  phone        String
+  driverId     String
+  driver       Driver   @relation(fields: [driverId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("emergency_contact")
+}
+
+enum MotorbikeOwner {
+  EMPRESA
+  MOTORISTA
+}
+
 model Motorbike {
-  id        String     @id @default(uuid())
-  brand     String
-  class     String
-  model     String
-  plate     String     @unique
-  color     String
-  cylinders Int
-  year      Int
-  mileage   Int
-  image     String?
-  driverId  String?    @unique
-  driver    Driver?    @relation(fields: [driverId], references: [id])
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  auditLogs AuditLog[]
+  id                   String                   @id @default(uuid())
+  plate                String                   @unique
+  brand                String
+  model                String
+  color                String
+  year                 Int
+  chassisNumber        String
+  engineNumber         String
+  owner                MotorbikeOwner
+  driverId             String?
+  driver               Driver?                  @relation(fields: [driverId], references: [id])
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  annualDocumentations MotorbikeDocumentation[]
+  auditLogs            AuditLog[]
 
   @@map("motorbike")
+}
+
+model MotorbikeDocumentation {
+  id                            String    @id @default(uuid())
+  year                          Int
+  circulationPermitFileUrl      String?
+  mandatoryInsuranceFileUrl     String?
+  mandatoryInsuranceExpiryDate  DateTime?
+  technicalInspectionFileUrl    String?
+  technicalInspectionExpiryDate DateTime?
+  motorbikeId                   String
+  motorbike                     Motorbike @relation(fields: [motorbikeId], references: [id], onDelete: Cascade)
+  createdAt                     DateTime  @default(now())
+  updatedAt                     DateTime  @updatedAt
+
+  @@unique([motorbikeId, year])
+  @@map("motorbike_documentation")
 }
 
 enum MovementStatus {
@@ -178,6 +242,13 @@ enum MovementStatus {
   IN_TRANSIT
   DELIVERED
   INCIDENT
+}
+
+enum MovementType {
+  ENTREGA
+  ENTREGA_CON_RECETA
+  REINTENTO
+  ENTREGA_VARIAS_DIRECCIONES
 }
 
 model Movement {
@@ -191,10 +262,13 @@ model Movement {
   departureDate   DateTime?
   deliveryDate    DateTime?
   status          MovementStatus @default(PENDING)
+  type            MovementType
   segments        Int?
   segmentCost     Decimal?       @db.Decimal(10, 2)
   segmentsAddress String[]
   hasRecipe       Boolean        @default(false)
+  retryCount      Int            @default(0)
+  retryHistory    Json?          @db.JsonB
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   incidents       Incident[]

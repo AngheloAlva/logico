@@ -19,8 +19,10 @@ export async function getDriverById(id: string) {
 			where: { id },
 			include: {
 				region: true,
+				province: true,
 				city: true,
-				motorbike: true,
+				motorbikes: true,
+				emergencyContacts: true,
 			},
 		})
 

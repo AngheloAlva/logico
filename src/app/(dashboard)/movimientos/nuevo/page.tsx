@@ -80,8 +80,20 @@ export default function NuevoMovimientoPage() {
 		e.preventDefault()
 		setIsLoading(true)
 
+		// Determinar el tipo de movimiento según las características
+		let type: "ENTREGA" | "ENTREGA_CON_RECETA" | "REINTENTO" | "ENTREGA_VARIAS_DIRECCIONES" =
+			"ENTREGA"
+
+		if (formData.hasRecipe) {
+			type = "ENTREGA_CON_RECETA"
+		} else if (segmentAddresses.filter((addr) => addr.trim() !== "").length > 0) {
+			type = "ENTREGA_VARIAS_DIRECCIONES"
+		}
+
 		const data = {
 			...formData,
+			type,
+			retryCount: 0,
 			segmentCost: parseInt(formData.segmentCost) || 0,
 			segmentsAddress: segmentAddresses.filter((addr) => addr.trim() !== ""),
 		}
@@ -141,7 +153,7 @@ export default function NuevoMovimientoPage() {
 									value={formData.pharmacyId}
 									onValueChange={(value) => setFormData({ ...formData, pharmacyId: value })}
 								>
-									<SelectTrigger className="focus:border-green-500 focus:ring-green-500">
+									<SelectTrigger className="w-full focus:border-green-500 focus:ring-green-500">
 										<SelectValue placeholder="Selecciona una farmacia" />
 									</SelectTrigger>
 									<SelectContent>
@@ -160,13 +172,13 @@ export default function NuevoMovimientoPage() {
 									value={formData.driverId}
 									onValueChange={(value) => setFormData({ ...formData, driverId: value })}
 								>
-									<SelectTrigger className="focus:border-green-500 focus:ring-green-500">
+									<SelectTrigger className="w-full focus:border-green-500 focus:ring-green-500">
 										<SelectValue placeholder="Selecciona un motorista" />
 									</SelectTrigger>
 									<SelectContent>
 										{drivers.map((driver) => (
 											<SelectItem key={driver.id} value={driver.id}>
-												{driver.name}
+												{driver.firstName} {driver.paternalLastName}
 											</SelectItem>
 										))}
 									</SelectContent>

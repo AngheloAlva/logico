@@ -55,19 +55,36 @@ async function importPharmacies() {
 	console.log(`📋 Total de filas encontradas: ${data.length}`)
 
 	const regions = await prisma.region.findMany({
-		include: { cities: true },
+		include: {
+			provinces: {
+				include: { cities: true },
+			},
+		},
 	})
 
-	const regionMap = new Map<string, { id: string; cities: Map<string, string> }>()
+	const regionMap = new Map<
+		string,
+		{
+			id: string
+			provinces: Map<string, { id: string; cities: Map<string, string> }>
+		}
+	>()
 
 	for (const region of regions) {
-		const cityMap = new Map<string, string>()
-		for (const city of region.cities) {
-			cityMap.set(city.name.toLowerCase().trim(), city.id)
+		const provinceMap = new Map<string, { id: string; cities: Map<string, string> }>()
+		for (const province of region.provinces) {
+			const cityMap = new Map<string, string>()
+			for (const city of province.cities) {
+				cityMap.set(city.name.toLowerCase().trim(), city.id)
+			}
+			provinceMap.set(province.name.toLowerCase().trim(), {
+				id: province.id,
+				cities: cityMap,
+			})
 		}
 		regionMap.set(region.name.toLowerCase().trim(), {
 			id: region.id,
-			cities: cityMap,
+			provinces: provinceMap,
 		})
 	}
 
@@ -94,44 +111,65 @@ async function importPharmacies() {
 					data: {
 						name: regionName,
 					},
-					include: { cities: true },
 				})
 				regionData = {
 					id: newRegion.id,
-					cities: new Map(),
+					provinces: new Map(),
 				}
 				regionMap.set(regionName.toLowerCase().trim(), regionData)
 			}
 
-			const cityName = row.comuna_nombre.trim()
-			let cityId = regionData.cities.get(cityName.toLowerCase())
+			// Usar localidad_nombre como provincia
+			const provinceName = row.localidad_nombre.trim()
+			let provinceData = regionData.provinces.get(provinceName.toLowerCase())
 
-			if (!cityId) {
-				console.log(`➕ Creando ciudad: ${cityName} en región ${regionName}`)
-				const newCity = await prisma.city.create({
+			if (!provinceData) {
+				console.log(`➕ Creando provincia: ${provinceName} en región ${regionName}`)
+				const newProvince = await prisma.province.create({
 					data: {
-						name: cityName,
+						name: provinceName,
 						regionId: regionData.id,
 					},
 				})
+				provinceData = {
+					id: newProvince.id,
+					cities: new Map(),
+				}
+				regionData.provinces.set(provinceName.toLowerCase(), provinceData)
+			}
+
+			const cityName = row.comuna_nombre.trim()
+			let cityId = provinceData.cities.get(cityName.toLowerCase())
+
+			if (!cityId) {
+				console.log(`➕ Creando ciudad: ${cityName} en provincia ${provinceName}`)
+				const newCity = await prisma.city.create({
+					data: {
+						name: cityName,
+						provinceId: provinceData.id,
+					},
+				})
 				cityId = newCity.id
-				regionData.cities.set(cityName.toLowerCase(), cityId)
+				provinceData.cities.set(cityName.toLowerCase(), cityId)
 			}
 
 			const pharmacyData = {
+				code: row.local_id.toString(),
 				name: row.local_nombre.trim(),
 				address: row.local_direccion.trim(),
-				contactPhone: row.local_telefono || "Sin teléfono",
-				contactEmail: `contacto.${row.local_id}@cruzverde.cl`,
-				contactName: "Administrador",
+				phone: row.local_telefono || "Sin teléfono",
+				openingTime: row.funcionamiento_hora_apertura || "09:00:00",
+				closingTime: row.funcionamiento_hora_cierre || "18:00:00",
+				latitude: row.local_lat ? +row.local_lat : 0,
+				longitude: row.local_lng ? +row.local_lng : 0,
 				regionId: regionData.id,
+				provinceId: provinceData.id,
 				cityId: cityId,
 			}
 
-			const existingPharmacy = await prisma.pharmacy.findFirst({
+			const existingPharmacy = await prisma.pharmacy.findUnique({
 				where: {
-					name: pharmacyData.name,
-					address: pharmacyData.address,
+					code: pharmacyData.code,
 				},
 			})
 

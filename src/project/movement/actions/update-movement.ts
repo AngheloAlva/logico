@@ -24,9 +24,14 @@ export async function updateMovement(id: string, data: Partial<MovementInput>) {
 			where: { id },
 		})
 
+		// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		const { pharmacyId, driverId, retryHistory, ...rest } = data
+
 		const movement = await prisma.movement.update({
 			where: { id },
-			data,
+			data: {
+				...rest,
+			},
 		})
 
 		// Registrar auditoría

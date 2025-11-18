@@ -1,6 +1,6 @@
 "use client"
 
-import { ArrowLeft, Save, Trash2 } from "lucide-react"
+import { ArrowLeft, Save, Trash2, FileText } from "lucide-react"
 import { useParams, useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
 import { toast } from "sonner"
@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui
 import { Button } from "@/shared/components/ui/button"
 import { Input } from "@/shared/components/ui/input"
 import { Label } from "@/shared/components/ui/label"
+import { Badge } from "@/shared/components/ui/badge"
 import {
 	Select,
 	SelectItem,
@@ -31,15 +32,17 @@ export default function EditarMotoPage() {
 	const [drivers, setDrivers] = useState<Awaited<ReturnType<typeof getAvailableDrivers>>["data"]>(
 		[]
 	)
+	const [motorbikeData, setMotorbikeData] =
+		useState<Awaited<ReturnType<typeof getMotorbikeById>>["data"]>(undefined)
 	const [formData, setFormData] = useState({
 		brand: "",
 		model: "",
 		plate: "",
-		class: "",
 		color: "",
-		cylinders: 0,
 		year: 0,
-		mileage: 0,
+		chassisNumber: "",
+		engineNumber: "",
+		owner: "EMPRESA" as "EMPRESA" | "MOTORISTA",
 		driverId: "",
 	})
 
@@ -62,15 +65,16 @@ export default function EditarMotoPage() {
 
 		if (motorbikeResult.success && motorbikeResult.data) {
 			const motorbike = motorbikeResult.data
+			setMotorbikeData(motorbike)
 			setFormData({
 				brand: motorbike.brand,
 				model: motorbike.model,
 				plate: motorbike.plate,
-				class: motorbike.class,
 				color: motorbike.color,
-				cylinders: motorbike.cylinders,
 				year: motorbike.year,
-				mileage: motorbike.mileage,
+				chassisNumber: motorbike.chassisNumber,
+				engineNumber: motorbike.engineNumber,
+				owner: motorbike.owner,
 				driverId: motorbike.driverId || "",
 			})
 		} else {
@@ -188,39 +192,12 @@ export default function EditarMotoPage() {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="class">Clase *</Label>
-								<Input
-									id="class"
-									placeholder="Ej: Motocicleta"
-									value={formData.class}
-									onChange={(e) => setFormData({ ...formData, class: e.target.value })}
-									required
-									className="focus:border-green-500 focus:ring-green-500"
-								/>
-							</div>
-
-							<div className="space-y-2">
 								<Label htmlFor="color">Color *</Label>
 								<Input
 									id="color"
 									placeholder="Ej: Rojo"
 									value={formData.color}
 									onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-									required
-									className="focus:border-green-500 focus:ring-green-500"
-								/>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="cylinders">Cilindrada (cc) *</Label>
-								<Input
-									id="cylinders"
-									type="number"
-									placeholder="Ej: 110"
-									value={formData.cylinders}
-									onChange={(e) =>
-										setFormData({ ...formData, cylinders: parseInt(e.target.value) || 0 })
-									}
 									required
 									className="focus:border-green-500 focus:ring-green-500"
 								/>
@@ -242,18 +219,49 @@ export default function EditarMotoPage() {
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="mileage">Kilometraje *</Label>
+								<Label htmlFor="chassisNumber">Número de Chasis *</Label>
 								<Input
-									id="mileage"
-									type="number"
-									placeholder="Ej: 15000"
-									value={formData.mileage}
+									id="chassisNumber"
+									placeholder="Ej: 1HGBH41JXMN109186"
+									value={formData.chassisNumber}
 									onChange={(e) =>
-										setFormData({ ...formData, mileage: parseInt(e.target.value) || 0 })
+										setFormData({ ...formData, chassisNumber: e.target.value.toUpperCase() })
 									}
 									required
-									className="focus:border-green-500 focus:ring-green-500"
+									className="font-mono focus:border-green-500 focus:ring-green-500"
 								/>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="engineNumber">Número de Motor *</Label>
+								<Input
+									id="engineNumber"
+									placeholder="Ej: G13BB123456"
+									value={formData.engineNumber}
+									onChange={(e) =>
+										setFormData({ ...formData, engineNumber: e.target.value.toUpperCase() })
+									}
+									required
+									className="font-mono focus:border-green-500 focus:ring-green-500"
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="owner">Propietario *</Label>
+								<Select
+									value={formData.owner}
+									onValueChange={(value: "EMPRESA" | "MOTORISTA") =>
+										setFormData({ ...formData, owner: value })
+									}
+								>
+									<SelectTrigger className="w-full focus:border-green-500 focus:ring-green-500">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectItem value="EMPRESA">Empresa</SelectItem>
+										<SelectItem value="MOTORISTA">Motorista</SelectItem>
+									</SelectContent>
+								</Select>
 							</div>
 						</div>
 					</CardContent>
@@ -277,7 +285,7 @@ export default function EditarMotoPage() {
 									<SelectItem value="no">Sin asignar</SelectItem>
 									{drivers?.map((driver) => (
 										<SelectItem key={driver.id} value={driver.id}>
-											{driver.name}
+											{driver.firstName} {driver.paternalLastName}
 										</SelectItem>
 									))}
 								</SelectContent>
@@ -285,6 +293,137 @@ export default function EditarMotoPage() {
 						</div>
 					</CardContent>
 				</Card>
+
+				{motorbikeData &&
+					motorbikeData.annualDocumentations &&
+					motorbikeData.annualDocumentations.length > 0 && (
+						<Card className="">
+							<CardHeader>
+								<CardTitle className="flex items-center gap-2 text-green-800">
+									<FileText className="h-5 w-5" />
+									Documentación Anual
+								</CardTitle>
+							</CardHeader>
+							<CardContent>
+								<div className="space-y-4">
+									{motorbikeData.annualDocumentations.map((doc) => (
+										<div key={doc.id} className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+											<div className="mb-3 flex items-center justify-between">
+												<h4 className="font-semibold text-gray-900">Año {doc.year}</h4>
+											</div>
+											<div className="grid gap-3 md:grid-cols-3">
+												<div>
+													<p className="text-xs font-medium text-gray-500">
+														Permiso de Circulación
+													</p>
+													<p className="mt-1 text-sm text-gray-900">
+														{doc.circulationPermitFileUrl ? (
+															<a
+																href={doc.circulationPermitFileUrl}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-green-600 hover:underline"
+															>
+																Ver archivo
+															</a>
+														) : (
+															<span className="text-gray-400">No disponible</span>
+														)}
+													</p>
+												</div>
+												<div>
+													<p className="text-xs font-medium text-gray-500">Seguro Obligatorio</p>
+													<p className="mt-1 text-sm text-gray-900">
+														{doc.mandatoryInsuranceFileUrl ? (
+															<a
+																href={doc.mandatoryInsuranceFileUrl}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-green-600 hover:underline"
+															>
+																Ver archivo
+															</a>
+														) : (
+															<span className="text-gray-400">No disponible</span>
+														)}
+													</p>
+													{doc.mandatoryInsuranceExpiryDate && (
+														<p className="mt-1 text-xs text-gray-500">
+															Vence:{" "}
+															{new Date(doc.mandatoryInsuranceExpiryDate).toLocaleDateString()}
+														</p>
+													)}
+												</div>
+												<div>
+													<p className="text-xs font-medium text-gray-500">Revisión Técnica</p>
+													<p className="mt-1 text-sm text-gray-900">
+														{doc.technicalInspectionFileUrl ? (
+															<a
+																href={doc.technicalInspectionFileUrl}
+																target="_blank"
+																rel="noopener noreferrer"
+																className="text-green-600 hover:underline"
+															>
+																Ver archivo
+															</a>
+														) : (
+															<span className="text-gray-400">No disponible</span>
+														)}
+													</p>
+													{doc.technicalInspectionExpiryDate && (
+														<p className="mt-1 text-xs text-gray-500">
+															Vence:{" "}
+															{new Date(doc.technicalInspectionExpiryDate).toLocaleDateString()}
+														</p>
+													)}
+												</div>
+											</div>
+										</div>
+									))}
+								</div>
+							</CardContent>
+						</Card>
+					)}
+
+				{motorbikeData && motorbikeData.driver && (
+					<Card className="">
+						<CardHeader>
+							<CardTitle className="text-green-800">Motorista Asignado Actualmente</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="rounded-lg border border-green-100 bg-green-50/30 p-4">
+								<div className="grid gap-3 md:grid-cols-2">
+									<div>
+										<p className="text-xs font-medium text-gray-500">Nombre Completo</p>
+										<p className="mt-1 text-sm font-medium text-gray-900">
+											{motorbikeData.driver.firstName} {motorbikeData.driver.paternalLastName}{" "}
+											{motorbikeData.driver.maternalLastName}
+										</p>
+									</div>
+									<div>
+										<p className="text-xs font-medium text-gray-500">RUT</p>
+										<p className="mt-1 font-mono text-sm text-gray-900">
+											{motorbikeData.driver.rut}
+										</p>
+									</div>
+									<div>
+										<p className="text-xs font-medium text-gray-500">Email</p>
+										<p className="mt-1 text-sm text-gray-900">{motorbikeData.driver.email}</p>
+									</div>
+									<div>
+										<p className="text-xs font-medium text-gray-500">Estado</p>
+										<Badge
+											className="mt-1"
+											variant={motorbikeData.driver.active ? "default" : "secondary"}
+										>
+											{motorbikeData.driver.active ? "Activo" : "Inactivo"}
+										</Badge>
+									</div>
+								</div>
+							</div>
+						</CardContent>
+					</Card>
+				)}
 
 				<div className="flex justify-end gap-4">
 					<Link href="/motos">

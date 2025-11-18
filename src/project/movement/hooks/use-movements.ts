@@ -11,6 +11,7 @@ import { updateMovementStatus } from "../actions/update-movement-status"
 import { setDepartureDate } from "../actions/set-departure-date"
 import { setDeliveryDate } from "../actions/set-delivery-date"
 import type { MovementInput } from "@/shared/schemas/movement.schema"
+import { MovementStatus } from "@/generated/prisma"
 
 // Query Keys
 export const movementKeys = {
@@ -23,7 +24,12 @@ export const movementKeys = {
 }
 
 // Hook para obtener lista de movimientos con paginación
-export function useMovements(params?: { page?: number; pageSize?: number; search?: string }) {
+export function useMovements(params?: {
+	page?: number
+	pageSize?: number
+	search?: string
+	status: MovementStatus | "all"
+}) {
 	return useQuery({
 		queryKey: movementKeys.list(params),
 		queryFn: () => getMovements(params),

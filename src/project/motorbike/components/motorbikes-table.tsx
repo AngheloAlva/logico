@@ -75,7 +75,8 @@ export function MotorbikesTable() {
 							<TableRow className="hover:bg-green-50/50">
 								<TableHead className="font-semibold text-green-800">Moto</TableHead>
 								<TableHead className="font-semibold text-green-800">Patente</TableHead>
-								<TableHead className="font-semibold text-green-800">Especificaciones</TableHead>
+								<TableHead className="font-semibold text-green-800">Chasis</TableHead>
+								<TableHead className="font-semibold text-green-800">Propietario</TableHead>
 								<TableHead className="font-semibold text-green-800">Motorista</TableHead>
 								<TableHead className="text-right font-semibold text-green-800">Acciones</TableHead>
 							</TableRow>
@@ -85,7 +86,7 @@ export function MotorbikesTable() {
 							{loading
 								? Array.from({ length: pageSize }).map((_, index) => (
 										<TableRow key={index}>
-											<TableCell colSpan={5}>
+											<TableCell colSpan={6}>
 												<Skeleton className="h-10" />
 											</TableCell>
 										</TableRow>
@@ -102,7 +103,7 @@ export function MotorbikesTable() {
 															{motorbike.brand} {motorbike.model}
 														</p>
 														<p className="text-muted-foreground text-sm">
-															{motorbike.color} - {motorbike.year}
+															{motorbike.color} • {motorbike.year}
 														</p>
 													</div>
 												</div>
@@ -114,13 +115,25 @@ export function MotorbikesTable() {
 											</TableCell>
 											<TableCell>
 												<div className="text-sm">
-													<p>
-														<span className="font-medium">{motorbike.cylinders}</span> cc
+													<p className="font-mono text-xs text-gray-700">
+														{motorbike.chassisNumber}
 													</p>
-													<p className="text-muted-foreground">
-														{motorbike.mileage.toLocaleString()} km
+													<p className="text-muted-foreground text-xs">
+														Motor: {motorbike.engineNumber}
 													</p>
 												</div>
+											</TableCell>
+											<TableCell>
+												<Badge
+													variant="secondary"
+													className={
+														motorbike.owner === "EMPRESA"
+															? "bg-blue-100 text-blue-800"
+															: "bg-purple-100 text-purple-800"
+													}
+												>
+													{motorbike.owner === "EMPRESA" ? "Empresa" : "Motorista"}
+												</Badge>
 											</TableCell>
 											<TableCell>
 												{motorbike.driver ? (
@@ -128,7 +141,9 @@ export function MotorbikesTable() {
 														<div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-100">
 															<User className="h-3 w-3 text-green-600" />
 														</div>
-														<span className="text-sm">{motorbike.driver.name}</span>
+														<span className="text-sm">
+															{motorbike.driver.firstName} {motorbike.driver.paternalLastName}
+														</span>
 													</div>
 												) : (
 													<Badge variant="secondary" className="bg-orange-100 text-orange-800">

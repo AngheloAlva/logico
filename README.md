@@ -173,16 +173,16 @@ El sistema implementa un control de acceso basado en roles con 4 tipos de usuari
 
 ### 📊 Matriz de Permisos
 
-| Módulo      | Admin | Operadora | Supervisor | Gerente |
-| ----------- | ----- | --------- | ---------- | ------- |
-| Dashboard   | ✅    | ✅        | ✅         | ✅      |
-| Movimientos | ✅    | ✅        | ✅         | 👁️      |
-| Farmacias   | ✅    | ❌        | ✅         | ❌      |
-| Motoristas  | ✅    | ❌        | ✅         | ❌      |
-| Motos       | ✅    | ❌        | ✅         | ❌      |
-| Regiones    | ✅    | ❌        | ✅         | ❌      |
-| Usuarios    | ✅    | ❌        | ❌         | ❌      |
-| Reportes    | ✅    | ❌        | ✅         | ✅      |
+| Módulo      | Admin | Operadora |
+| ----------- | ----- | --------- |
+| Dashboard   | ✅    | ✅        |
+| Movimientos | ✅    | ✅        |
+| Farmacias   | ✅    | ❌        |
+| Motoristas  | ✅    | ❌        |
+| Motos       | ✅    | ❌        |
+| Regiones    | ✅    | ❌        |
+| Usuarios    | ✅    | ❌        |
+| Reportes    | ✅    | ❌        |
 
 **Leyenda:** ✅ Acceso completo | 👁️ Solo lectura | ❌ Sin acceso
 
@@ -196,37 +196,4 @@ Password: Admin123!
 # Operadora
 Email: operadora@logico.test
 Password: User123!
-
-# Supervisor
-Email: supervisor@logico.test
-Password: User123!
-
-# Gerente (pendiente de crear)
-Email: gerente@logico.test
-Password: User123!
 ```
-
----
-
-## 🤝 Contribuir
-
-Para contribuir al proyecto:
-
-1. Lee la [Guía de Desarrollo](./docs/08-DESARROLLO.md)
-2. Familiarízate con el [Modelo de Datos](./docs/04-MODELO-DATOS.md)
-3. Sigue las convenciones establecidas en [Estructura del Proyecto](./docs/03-ESTRUCTURA.md)
-
----
-
-## 📞 Soporte
-
-Si tienes preguntas sobre la documentación:
-
-1. Revisa el documento correspondiente en el índice
-2. Consulta el README.md principal del proyecto
-3. Contacta al equipo de desarrollo
-
----
-
-**Última actualización:** Octubre 2025
-**Versión:** 0.1.0

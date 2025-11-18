@@ -29,8 +29,8 @@ export default async function MovementsCards(): Promise<React.ReactElement> {
 					</div>
 					<Link href="/movimientos">
 						<Button
-							variant="ghost"
 							size="sm"
+							variant="outline"
 							className="text-green-600 hover:bg-green-50 hover:text-green-700"
 						>
 							Ver todos
@@ -38,8 +38,9 @@ export default async function MovementsCards(): Promise<React.ReactElement> {
 						</Button>
 					</Link>
 				</CardHeader>
+
 				<CardContent>
-					<div className="space-y-3">
+					<div className="flex flex-col gap-2">
 						{recentMovements?.slice(0, 5).map((movement) => (
 							<Link key={movement.id} href={`/movimientos/${movement.id}`}>
 								<div className="group flex items-center justify-between rounded-lg border border-gray-100 bg-gray-50/50 p-4 transition-all hover:border-green-200 hover:bg-green-50/50 hover:shadow-sm">
@@ -92,7 +93,7 @@ export default async function MovementsCards(): Promise<React.ReactElement> {
 					<p className="text-sm text-gray-500">Personal en operación</p>
 				</CardHeader>
 				<CardContent>
-					<div className="space-y-3">
+					<div className="flex flex-col gap-2">
 						{activeDrivers?.slice(0, 6).map((driver) => (
 							<div
 								key={driver.id}
@@ -102,10 +103,14 @@ export default async function MovementsCards(): Promise<React.ReactElement> {
 									<Truck className="h-5 w-5 text-gray-600" />
 								</div>
 								<div className="min-w-0 flex-1">
-									<p className="truncate text-sm font-medium text-gray-900">{driver.name}</p>
+									<p className="truncate text-sm font-medium text-gray-900">
+										{driver.firstName} {driver.paternalLastName}
+									</p>
 									<div className="flex items-center gap-1 text-xs text-gray-500">
 										<Clock className="h-3 w-3" />
-										{driver.motorbike ? driver.motorbike.plate : "Sin asignar"}
+										{driver.motorbikes && driver.motorbikes.length > 0
+											? driver.motorbikes[0].plate
+											: "Sin asignar"}
 									</div>
 								</div>
 								<Badge variant="secondary" className="border-green-200 bg-green-50 text-green-700">

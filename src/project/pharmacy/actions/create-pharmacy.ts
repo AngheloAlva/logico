@@ -1,11 +1,12 @@
 "use server"
 
-import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
+
 import { pharmacySchema, type PharmacyInput } from "@/shared/schemas/pharmacy.schema"
+import { createAuditLog } from "@/lib/audit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { createAuditLog } from "@/lib/audit"
 
 export async function createPharmacy(data: PharmacyInput) {
 	const session = await auth.api.getSession({
@@ -23,7 +24,6 @@ export async function createPharmacy(data: PharmacyInput) {
 			data: validated,
 		})
 
-		// Registrar auditoría
 		await createAuditLog({
 			entity: "PHARMACY",
 			entityId: pharmacy.id,

@@ -146,7 +146,6 @@ export default function LoginPage() {
 					<ul className="text-muted-foreground list-none text-sm">
 						<li>admin@logico.test / Admin123!</li>
 						<li>operadora@logico.test / User123!</li>
-						<li>gerente@logico.test / User123!</li>
 					</ul>
 				</CardFooter>
 			</Card>

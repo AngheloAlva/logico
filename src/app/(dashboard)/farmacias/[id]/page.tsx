@@ -23,7 +23,9 @@ import {
 	SelectContent,
 } from "@/shared/components/ui/select"
 
-import type { City } from "@/generated/prisma"
+import type { City, Province } from "@/generated/prisma"
+
+type ProvinceWithCities = Province & { cities: City[] }
 
 export default function EditarFarmaciaPage() {
 	const params = useParams()
@@ -31,14 +33,19 @@ export default function EditarFarmaciaPage() {
 	const [isLoading, setIsLoading] = useState(false)
 	const [loading, setLoading] = useState(true)
 	const [regions, setRegions] = useState<Awaited<ReturnType<typeof getRegions>>["data"]>([])
+	const [provinces, setProvinces] = useState<ProvinceWithCities[]>([])
 	const [cities, setCities] = useState<City[]>([])
 	const [formData, setFormData] = useState({
+		code: "",
 		name: "",
 		address: "",
-		contactName: "",
-		contactPhone: "",
-		contactEmail: "",
+		phone: "",
+		openingTime: "",
+		closingTime: "",
+		latitude: 0,
+		longitude: 0,
 		regionId: "",
+		provinceId: "",
 		cityId: "",
 	})
 
@@ -50,9 +57,16 @@ export default function EditarFarmaciaPage() {
 	useEffect(() => {
 		if (formData.regionId) {
 			const region = regions?.find((r) => r.id === formData.regionId)
-			setCities(region?.cities || [])
+			setProvinces(region?.provinces || [])
 		}
 	}, [formData.regionId, regions])
+
+	useEffect(() => {
+		if (formData.provinceId) {
+			const province = provinces?.find((p) => p.id === formData.provinceId)
+			setCities(province?.cities || [])
+		}
+	}, [formData.provinceId, provinces])
 
 	async function loadData() {
 		setLoading(true)
@@ -69,19 +83,27 @@ export default function EditarFarmaciaPage() {
 		if (pharmacyResult.success && pharmacyResult.data) {
 			const pharmacy = pharmacyResult.data
 			setFormData({
+				code: pharmacy.code,
 				name: pharmacy.name,
 				address: pharmacy.address,
-				contactName: pharmacy.contactName,
-				contactPhone: pharmacy.contactPhone,
-				contactEmail: pharmacy.contactEmail,
+				phone: pharmacy.phone,
+				openingTime: pharmacy.openingTime,
+				closingTime: pharmacy.closingTime,
+				latitude: pharmacy.latitude,
+				longitude: pharmacy.longitude,
 				regionId: pharmacy.regionId,
+				provinceId: pharmacy.provinceId,
 				cityId: pharmacy.cityId,
 			})
 
-			// Set cities based on the region
+			// Set provinces and cities based on region and province
 			const region = regionsResult.data?.find((r) => r.id === pharmacy.regionId)
 			if (region) {
-				setCities(region.cities || [])
+				setProvinces(region.provinces || [])
+				const province = region.provinces?.find((p) => p.id === pharmacy.provinceId)
+				if (province) {
+					setCities(province.cities || [])
+				}
 			}
 		} else {
 			toast.error(pharmacyResult.error || "Error al cargar farmacia")
@@ -155,6 +177,18 @@ export default function EditarFarmaciaPage() {
 					<CardContent className="space-y-4">
 						<div className="grid gap-4 md:grid-cols-2">
 							<div className="space-y-2">
+								<Label htmlFor="code">Código *</Label>
+								<Input
+									id="code"
+									placeholder="Ej: FARM001"
+									value={formData.code}
+									onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+									required
+									className="focus:border-green-500 focus:ring-green-500"
+								/>
+							</div>
+
+							<div className="space-y-2">
 								<Label htmlFor="name">Nombre de la Farmacia *</Label>
 								<Input
 									id="name"
@@ -166,7 +200,7 @@ export default function EditarFarmaciaPage() {
 								/>
 							</div>
 
-							<div className="space-y-2">
+							<div className="space-y-2 md:col-span-2">
 								<Label htmlFor="address">Dirección *</Label>
 								<Input
 									id="address"
@@ -179,11 +213,57 @@ export default function EditarFarmaciaPage() {
 							</div>
 
 							<div className="space-y-2">
+								<Label htmlFor="phone">Teléfono *</Label>
+								<Input
+									id="phone"
+									placeholder="Ej: +56 2 1234 5678"
+									value={formData.phone}
+									onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+									required
+									className="focus:border-green-500 focus:ring-green-500"
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="openingTime">Horario de Apertura *</Label>
+								<Input
+									id="openingTime"
+									type="time"
+									value={formData.openingTime}
+									onChange={(e) => setFormData({ ...formData, openingTime: e.target.value })}
+									required
+									className="focus:border-green-500 focus:ring-green-500"
+								/>
+							</div>
+
+							<div className="space-y-2">
+								<Label htmlFor="closingTime">Horario de Cierre *</Label>
+								<Input
+									id="closingTime"
+									type="time"
+									value={formData.closingTime}
+									onChange={(e) => setFormData({ ...formData, closingTime: e.target.value })}
+									required
+									className="focus:border-green-500 focus:ring-green-500"
+								/>
+							</div>
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card className="">
+					<CardHeader>
+						<CardTitle className="text-green-800">Ubicación</CardTitle>
+					</CardHeader>
+					<CardContent className="space-y-4">
+						<div className="grid gap-4 md:grid-cols-3">
+							<div className="space-y-2">
 								<Label htmlFor="region">Región *</Label>
 								<Select
 									value={formData.regionId}
-									onValueChange={(value) => setFormData({ ...formData, regionId: value })}
-									required
+									onValueChange={(value) =>
+										setFormData({ ...formData, regionId: value, provinceId: "", cityId: "" })
+									}
 								>
 									<SelectTrigger className="w-full focus:border-green-500 focus:ring-green-500">
 										<SelectValue placeholder="Selecciona una región" />
@@ -199,12 +279,33 @@ export default function EditarFarmaciaPage() {
 							</div>
 
 							<div className="space-y-2">
+								<Label htmlFor="province">Provincia *</Label>
+								<Select
+									value={formData.provinceId}
+									onValueChange={(value) =>
+										setFormData({ ...formData, provinceId: value, cityId: "" })
+									}
+									disabled={!formData.regionId}
+								>
+									<SelectTrigger className="w-full focus:border-green-500 focus:ring-green-500">
+										<SelectValue placeholder="Selecciona una provincia" />
+									</SelectTrigger>
+									<SelectContent>
+										{provinces.map((province) => (
+											<SelectItem key={province.id} value={province.id}>
+												{province.name}
+											</SelectItem>
+										))}
+									</SelectContent>
+								</Select>
+							</div>
+
+							<div className="space-y-2">
 								<Label htmlFor="city">Ciudad *</Label>
 								<Select
 									value={formData.cityId}
 									onValueChange={(value) => setFormData({ ...formData, cityId: value })}
-									disabled={!formData.regionId}
-									required
+									disabled={!formData.provinceId}
 								>
 									<SelectTrigger className="w-full focus:border-green-500 focus:ring-green-500">
 										<SelectValue placeholder="Selecciona una ciudad" />
@@ -219,50 +320,40 @@ export default function EditarFarmaciaPage() {
 								</Select>
 							</div>
 						</div>
-					</CardContent>
-				</Card>
 
-				<Card className="">
-					<CardHeader>
-						<CardTitle className="text-green-800">Información de Contacto</CardTitle>
-					</CardHeader>
-					<CardContent className="space-y-4">
-						<div className="grid gap-4 md:grid-cols-3">
+						<div className="grid gap-4 md:grid-cols-2">
 							<div className="space-y-2">
-								<Label htmlFor="contactName">Nombre del Contacto *</Label>
+								<Label htmlFor="latitude">Latitud *</Label>
 								<Input
-									id="contactName"
-									placeholder="Ej: Juan Pérez"
-									value={formData.contactName}
-									onChange={(e) => setFormData({ ...formData, contactName: e.target.value })}
+									id="latitude"
+									type="number"
+									step="any"
+									placeholder="Ej: -33.4489"
+									value={formData.latitude}
+									onChange={(e) =>
+										setFormData({ ...formData, latitude: parseFloat(e.target.value) || 0 })
+									}
 									required
 									className="focus:border-green-500 focus:ring-green-500"
 								/>
+								<p className="text-muted-foreground text-xs">Coordenada de latitud (-90 a 90)</p>
 							</div>
 
 							<div className="space-y-2">
-								<Label htmlFor="contactPhone">Teléfono *</Label>
+								<Label htmlFor="longitude">Longitud *</Label>
 								<Input
-									id="contactPhone"
-									placeholder="Ej: +56 9 1234 5678"
-									value={formData.contactPhone}
-									onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
+									id="longitude"
+									type="number"
+									step="any"
+									placeholder="Ej: -70.6693"
+									value={formData.longitude}
+									onChange={(e) =>
+										setFormData({ ...formData, longitude: parseFloat(e.target.value) || 0 })
+									}
 									required
 									className="focus:border-green-500 focus:ring-green-500"
 								/>
-							</div>
-
-							<div className="space-y-2">
-								<Label htmlFor="contactEmail">Correo Electrónico *</Label>
-								<Input
-									id="contactEmail"
-									type="email"
-									placeholder="Ej: contacto@farmacia.cl"
-									value={formData.contactEmail}
-									onChange={(e) => setFormData({ ...formData, contactEmail: e.target.value })}
-									required
-									className="focus:border-green-500 focus:ring-green-500"
-								/>
+								<p className="text-muted-foreground text-xs">Coordenada de longitud (-180 a 180)</p>
 							</div>
 						</div>
 					</CardContent>

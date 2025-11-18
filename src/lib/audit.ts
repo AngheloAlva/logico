@@ -21,7 +21,7 @@ interface AuditLogParams {
 	userId: string
 	previousData?: unknown
 	newData?: unknown
-	// Relaciones opcionales para facilitar consultas
+
 	pharmacyId?: string
 	driverId?: string
 	motorbikeId?: string
@@ -29,10 +29,6 @@ interface AuditLogParams {
 	incidentId?: string
 }
 
-/**
- * Registra una acción en el log de auditoría
- * @param params Parámetros del log de auditoría
- */
 export async function createAuditLog(params: AuditLogParams): Promise<void> {
 	try {
 		await prisma.auditLog.create({
@@ -51,16 +47,10 @@ export async function createAuditLog(params: AuditLogParams): Promise<void> {
 			},
 		})
 	} catch (error) {
-		// Log el error pero no fallar la operación principal
 		console.error("Error creating audit log:", error)
 	}
 }
 
-/**
- * Obtiene el historial de auditoría de una entidad específica
- * @param entity Tipo de entidad
- * @param entityId ID de la entidad
- */
 export async function getAuditLogs(entity: AuditEntity, entityId: string) {
 	try {
 		const logs = await prisma.auditLog.findMany({
@@ -80,10 +70,6 @@ export async function getAuditLogs(entity: AuditEntity, entityId: string) {
 	}
 }
 
-/**
- * Obtiene todos los logs de auditoría con filtros opcionales
- * @param filters Filtros opcionales
- */
 export async function getAllAuditLogs(filters?: {
 	entity?: AuditEntity
 	userId?: string
@@ -113,7 +99,7 @@ export async function getAllAuditLogs(filters?: {
 			orderBy: {
 				timestamp: "desc",
 			},
-			take: 100, // Limitar a 100 registros por defecto
+			take: 100,
 		})
 
 		return { success: true, data: logs }

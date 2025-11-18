@@ -20,10 +20,10 @@ export async function getActiveDrivers() {
 				active: true,
 			},
 			include: {
-				motorbike: true,
+				motorbikes: true,
 			},
 			orderBy: {
-				name: "asc",
+				firstName: "asc",
 			},
 		})
 

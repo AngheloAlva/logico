@@ -3,7 +3,7 @@ import { auth } from "@/lib/auth"
 const USERS = [
 	{
 		email: "admin@logico.test",
-		password: "Admin123!",
+		password: "	",
 		name: "Administrador Principal",
 		role: "admin",
 	},
@@ -12,18 +12,6 @@ const USERS = [
 		password: "User123!",
 		name: "Operadora del Sistema",
 		role: "operadora",
-	},
-	{
-		email: "operadora2@logico.test",
-		password: "User123!",
-		name: "Operadora 2",
-		role: "operadora",
-	},
-	{
-		email: "supervisor@logico.test",
-		password: "User123!",
-		name: "Supervisor del Sistema",
-		role: "supervisor",
 	},
 ]
 

@@ -1,11 +1,12 @@
 "use server"
 
-import { headers } from "next/headers"
-import { driverSchema, type DriverInput } from "@/shared/schemas/driver.schema"
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
+
+import { driverSchema, type DriverInput } from "@/shared/schemas/driver.schema"
+import { createAuditLog } from "@/lib/audit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { createAuditLog } from "@/lib/audit"
 
 export async function updateDriver(id: string, data: DriverInput) {
 	const session = await auth.api.getSession({
@@ -19,17 +20,30 @@ export async function updateDriver(id: string, data: DriverInput) {
 	try {
 		const validated = driverSchema.parse(data)
 
-		// Obtener datos anteriores
 		const previousDriver = await prisma.driver.findUnique({
 			where: { id },
+			include: { emergencyContacts: true },
 		})
+
+		const { emergencyContacts, ...driverData } = validated
 
 		const driver = await prisma.driver.update({
 			where: { id },
-			data: validated,
+			data: {
+				...driverData,
+				emergencyContacts: {
+					deleteMany: {},
+					create: emergencyContacts,
+				},
+			},
+			include: {
+				emergencyContacts: true,
+				region: true,
+				province: true,
+				city: true,
+			},
 		})
 
-		// Registrar auditoría
 		await createAuditLog({
 			entity: "DRIVER",
 			entityId: driver.id,

@@ -96,13 +96,13 @@ async function importMotorcycles() {
 
 			const motorbikeData = {
 				brand: cleanString(row.Marca) || "SIN MARCA",
-				class: cleanString(row["Tipo Vehiculo"]) || "MOTOCICLETA",
 				model: cleanString(row.Modelo) || "SIN MODELO",
 				plate: plate.toUpperCase(),
 				color: normalizeColor(row.Color),
-				cylinders: Number(row.Cilindrada) || 0,
 				year: Number(row["Año Vehículo"]) || new Date().getFullYear(),
-				mileage: 0,
+				chassisNumber: cleanString(row["Codigo SII"]) || "SIN_CHASIS",
+				engineNumber: `ENG-${plate.toUpperCase()}`,
+				owner: "EMPRESA" as const,
 			}
 
 			const existingMotorbike = await prisma.motorbike.findUnique({

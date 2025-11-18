@@ -223,7 +223,11 @@ export default function MovimientoDetallePage() {
 							</CardTitle>
 						</CardHeader>
 						<CardContent className="space-y-2">
-							<p className="font-medium">{movement.driver?.name || "Sin asignar"}</p>
+							<p className="font-medium">
+								{movement.driver
+									? `${movement.driver.firstName} ${movement.driver.paternalLastName} ${movement.driver.maternalLastName}`
+									: "Sin asignar"}
+							</p>
 							{movement.driver?.phone && (
 								<p className="text-muted-foreground text-sm">{movement.driver.phone}</p>
 							)}

@@ -20,7 +20,10 @@ export async function createCity(data: CityInput) {
 		const validated = citySchema.parse(data)
 
 		const city = await prisma.city.create({
-			data: validated,
+			data: {
+				...validated,
+				provinceId: "",
+			},
 		})
 
 		revalidatePath("/regiones")

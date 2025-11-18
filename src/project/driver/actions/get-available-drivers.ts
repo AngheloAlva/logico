@@ -20,7 +20,7 @@ export async function getAvailableDrivers() {
 				active: true,
 			},
 			orderBy: {
-				name: "asc",
+				firstName: "asc",
 			},
 		})
 		return { success: true, data: drivers }

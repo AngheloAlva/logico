@@ -1,12 +1,13 @@
 "use server"
 
-import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
 
 import { movementSchema, type MovementInput } from "@/shared/schemas/movement.schema"
+import { MovementStatus } from "@/generated/prisma"
+import { createAuditLog } from "@/lib/audit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { createAuditLog } from "@/lib/audit"
 
 export async function createMovement(data: MovementInput) {
 	const session = await auth.api.getSession({
@@ -20,14 +21,29 @@ export async function createMovement(data: MovementInput) {
 	try {
 		const validated = movementSchema.parse(data)
 
+		const { retryHistory, ...restData } = validated
+		const movementData: MovementInput & {
+			retryHistory?: {
+				retries: {
+					attempt: number
+					date: string
+					reason: string
+				}[]
+			}
+			status: MovementStatus
+		} = {
+			...restData,
+			status: MovementStatus.PENDING,
+		}
+
+		if (retryHistory) {
+			movementData.retryHistory = retryHistory
+		}
+
 		const movement = await prisma.movement.create({
-			data: {
-				...validated,
-				status: "PENDING",
-			},
+			data: movementData,
 		})
 
-		// Registrar auditoría
 		await createAuditLog({
 			entity: "MOVEMENT",
 			entityId: movement.id,

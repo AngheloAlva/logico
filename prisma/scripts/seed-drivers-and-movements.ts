@@ -1,77 +1,129 @@
 import { prisma } from "@/lib/prisma"
 import { MovementStatus } from "../../src/generated/prisma"
 
+/**
+ * Tipos de movimiento (hasta que se genere el cliente de Prisma)
+ * NOTA: Los errores de TypeScript se resolverán después de ejecutar:
+ * npx prisma generate
+ */
+const MovementTypes = {
+	ENTREGA: "ENTREGA",
+	ENTREGA_CON_RECETA: "ENTREGA_CON_RECETA",
+	REINTENTO: "REINTENTO",
+	ENTREGA_VARIAS_DIRECCIONES: "ENTREGA_VARIAS_DIRECCIONES",
+} as const
+
 // Datos de ejemplo para motoristas
 const DRIVERS_DATA = [
 	{
-		name: "Carlos Rodríguez",
+		firstName: "Carlos",
+		paternalLastName: "Rodríguez",
+		maternalLastName: "Silva",
 		rut: "12345678-9",
 		email: "carlos.rodriguez@logico.test",
 		phone: "+56912345678",
 		address: "Av. Libertador Bernardo O'Higgins 1234",
+		birthDate: new Date("1988-03-15"),
+		emergencyContacts: [{ relationship: "Esposa", phone: "+56912345679" }],
 	},
 	{
-		name: "María González",
+		firstName: "María",
+		paternalLastName: "González",
+		maternalLastName: "Pérez",
 		rut: "23456789-0",
 		email: "maria.gonzalez@logico.test",
 		phone: "+56923456789",
 		address: "Av. Providencia 2345",
+		birthDate: new Date("1992-07-22"),
+		emergencyContacts: [{ relationship: "Madre", phone: "+56923456790" }],
 	},
 	{
-		name: "Juan Pérez",
+		firstName: "Juan",
+		paternalLastName: "Pérez",
+		maternalLastName: "Rojas",
 		rut: "34567890-1",
 		email: "juan.perez@logico.test",
 		phone: "+56934567890",
 		address: "Av. Apoquindo 3456",
+		birthDate: new Date("1985-11-08"),
+		emergencyContacts: [{ relationship: "Hermano", phone: "+56934567891" }],
 	},
 	{
-		name: "Ana Martínez",
+		firstName: "Ana",
+		paternalLastName: "Martínez",
+		maternalLastName: "Vargas",
 		rut: "45678901-2",
 		email: "ana.martinez@logico.test",
 		phone: "+56945678901",
 		address: "Av. Vicuña Mackenna 4567",
+		birthDate: new Date("1990-05-19"),
+		emergencyContacts: [{ relationship: "Padre", phone: "+56945678902" }],
 	},
 	{
-		name: "Pedro Sánchez",
+		firstName: "Pedro",
+		paternalLastName: "Sánchez",
+		maternalLastName: "Muñoz",
 		rut: "56789012-3",
 		email: "pedro.sanchez@logico.test",
 		phone: "+56956789012",
 		address: "Av. Grecia 5678",
+		birthDate: new Date("1987-09-30"),
+		emergencyContacts: [{ relationship: "Esposa", phone: "+56956789013" }],
 	},
 	{
-		name: "Laura Torres",
+		firstName: "Laura",
+		paternalLastName: "Torres",
+		maternalLastName: "Castillo",
 		rut: "67890123-4",
 		email: "laura.torres@logico.test",
 		phone: "+56967890123",
 		address: "Av. Irarrázaval 6789",
+		birthDate: new Date("1993-12-11"),
+		emergencyContacts: [{ relationship: "Madre", phone: "+56967890124" }],
 	},
 	{
-		name: "Diego Ramírez",
+		firstName: "Diego",
+		paternalLastName: "Ramírez",
+		maternalLastName: "Bravo",
 		rut: "78901234-5",
 		email: "diego.ramirez@logico.test",
 		phone: "+56978901234",
 		address: "Av. Tobalaba 7890",
+		birthDate: new Date("1989-04-25"),
+		emergencyContacts: [{ relationship: "Hermana", phone: "+56978901235" }],
 	},
 	{
-		name: "Sofía Flores",
+		firstName: "Sofía",
+		paternalLastName: "Flores",
+		maternalLastName: "Mendoza",
 		rut: "89012345-6",
 		email: "sofia.flores@logico.test",
 		phone: "+56989012345",
 		address: "Av. Las Condes 8901",
+		birthDate: new Date("1991-08-17"),
+		emergencyContacts: [{ relationship: "Padre", phone: "+56989012346" }],
 	},
 	{
-		name: "Andrés Castro",
+		firstName: "Andrés",
+		paternalLastName: "Castro",
+		maternalLastName: "Vega",
 		rut: "90123456-7",
 		email: "andres.castro@logico.test",
 		phone: "+56990123456",
 		address: "Av. Vitacura 9012",
+		birthDate: new Date("1986-02-14"),
+		emergencyContacts: [{ relationship: "Esposa", phone: "+56990123457" }],
 	},
 	{
-		name: "Valentina Morales",
+		firstName: "Valentina",
+		paternalLastName: "Morales",
+		maternalLastName: "Herrera",
 		rut: "01234567-8",
 		email: "valentina.morales@logico.test",
 		phone: "+56901234567",
 		address: "Av. Kennedy 1234",
+		birthDate: new Date("1994-10-05"),
+		emergencyContacts: [{ relationship: "Madre", phone: "+56901234568" }],
 	},
 ]
 
@@ -156,16 +208,32 @@ async function createDrivers() {
 
 	console.log(`🏍️  Motos disponibles: ${availableMotorbikes.length}`)
 
-	// Obtener regiones y ciudades para asignar a los motoristas
+	// Obtener regiones, provincias y ciudades para asignar a los motoristas
 	const regions = await prisma.region.findMany({
 		include: {
-			cities: true,
+			provinces: {
+				include: {
+					cities: true,
+				},
+			},
 		},
 	})
 
 	if (regions.length === 0) {
 		console.log("⚠️  No hay regiones disponibles")
 		return []
+	}
+
+	// Contar el último código de motorista
+	const lastDriver = await prisma.driver.findFirst({
+		orderBy: { code: "desc" },
+	})
+	let driverCodeCounter = 1
+	if (lastDriver) {
+		const match = lastDriver.code.match(/DRV-(\d+)/)
+		if (match) {
+			driverCodeCounter = parseInt(match[1]) + 1
+		}
 	}
 
 	const drivers = []
@@ -175,7 +243,18 @@ async function createDrivers() {
 		const driverData = DRIVERS_DATA[i]
 		const motorbike = availableMotorbikes[i]
 		const region = randomElement(regions)
-		const city = region.cities.length > 0 ? randomElement(region.cities) : null
+
+		// Seleccionar provincia y ciudad
+		const province = region.provinces.length > 0 ? randomElement(region.provinces) : null
+		if (!province) {
+			console.warn(`⚠️  Región ${region.name} sin provincias, omitiendo...`)
+			continue
+		}
+		const city = province.cities.length > 0 ? randomElement(province.cities) : null
+		if (!city) {
+			console.warn(`⚠️  Provincia ${province.name} sin ciudades, omitiendo...`)
+			continue
+		}
 
 		try {
 			// Verificar si el RUT ya existe
@@ -189,16 +268,28 @@ async function createDrivers() {
 				continue
 			}
 
+			const driverCode = `DRV-${String(driverCodeCounter).padStart(4, "0")}`
+			driverCodeCounter++
+
 			const driver = await prisma.driver.create({
 				data: {
-					name: driverData.name,
+					code: driverCode,
+					firstName: driverData.firstName,
+					paternalLastName: driverData.paternalLastName,
+					maternalLastName: driverData.maternalLastName,
 					rut: driverData.rut,
 					email: driverData.email,
 					phone: driverData.phone,
 					address: driverData.address,
+					birthDate: driverData.birthDate,
+					hasPersonalMotorbike: false,
 					active: true,
 					regionId: region.id,
-					cityId: city?.id || null,
+					provinceId: province.id,
+					cityId: city.id,
+					emergencyContacts: {
+						create: driverData.emergencyContacts,
+					},
 				},
 			})
 
@@ -211,15 +302,21 @@ async function createDrivers() {
 			drivers.push(driver)
 			created++
 
-			console.log(`✅ Motorista creado: ${driver.name}`)
+			const fullName = `${driver.firstName} ${driver.paternalLastName} ${driver.maternalLastName}`
+			console.log(`✅ Motorista creado: ${fullName}`)
+			console.log(`   - Código: ${driver.code}`)
 			console.log(`   - RUT: ${driver.rut}`)
 			console.log(`   - Email: ${driver.email}`)
 			console.log(`   - Moto asignada: ${motorbike.brand} ${motorbike.model} (${motorbike.plate})`)
 			console.log(`   - Región: ${region.name}`)
-			if (city) console.log(`   - Ciudad: ${city.name}`)
+			console.log(`   - Provincia: ${province.name}`)
+			console.log(`   - Ciudad: ${city.name}`)
 			console.log()
 		} catch (error) {
-			console.error(`❌ Error creando motorista ${driverData.name}:`, error)
+			console.error(
+				`❌ Error creando motorista ${driverData.firstName} ${driverData.paternalLastName}:`,
+				error
+			)
 		}
 	}
 
@@ -259,6 +356,29 @@ async function createMovements(minMovements = 150) {
 	console.log(`🏥 Farmacias disponibles: ${pharmacies.length}`)
 	console.log()
 
+	// Tipos de movimiento con sus probabilidades
+	const movementTypes = [
+		{ type: MovementTypes.ENTREGA, weight: 0.4 }, // 40% entregas simples
+		{ type: MovementTypes.ENTREGA_CON_RECETA, weight: 0.35 }, // 35% con receta
+		{ type: MovementTypes.REINTENTO, weight: 0.15 }, // 15% reintentos
+		{ type: MovementTypes.ENTREGA_VARIAS_DIRECCIONES, weight: 0.1 }, // 10% varias direcciones
+	]
+
+	// Función para seleccionar tipo de movimiento con probabilidad ponderada
+	const selectMovementType = ():
+		| "ENTREGA"
+		| "ENTREGA_CON_RECETA"
+		| "REINTENTO"
+		| "ENTREGA_VARIAS_DIRECCIONES" => {
+		const random = Math.random()
+		let accumulated = 0
+		for (const { type, weight } of movementTypes) {
+			accumulated += weight
+			if (random <= accumulated) return type
+		}
+		return MovementTypes.ENTREGA
+	}
+
 	// Fechas límite: 1 octubre 2025 - 10 noviembre 2025
 	const startDate = new Date("2025-10-01T00:00:00")
 	const endDate = new Date("2025-11-10T23:59:59")
@@ -283,6 +403,7 @@ async function createMovements(minMovements = 150) {
 		try {
 			const driver = randomElement(drivers)
 			const pharmacy = randomElement(pharmacies)
+			const movementType = selectMovementType()
 			const status = randomElement(STATUSES)
 			const createdAt = randomDate(startDate, endDate)
 
@@ -298,13 +419,55 @@ async function createMovements(minMovements = 150) {
 				deliveryDate = new Date(departureDate!.getTime() + Math.random() * 7200000 + 1800000) // +0.5-2.5 horas
 			}
 
-			// Generar segmentos aleatorios (0-5)
-			const segments = Math.floor(Math.random() * 6)
-			const segmentCost = segments > 0 ? 1500 + Math.random() * 1000 : null
-			const segmentsAddress =
-				segments > 0 ? Array.from({ length: segments }, () => randomElement(SEGMENT_ADDRESSES)) : []
+			// Configuración según tipo de movimiento
+			let segments: number | null = null
+			let segmentCost: string | null = null
+			let segmentsAddress: string[] = []
+			let hasRecipe = false
+			let retryCount = 0
+			let retryHistory: { attempt: number; date: string; reason: string }[] | undefined = undefined
 
-			const hasRecipe = Math.random() > 0.5
+			switch (movementType) {
+				case MovementTypes.ENTREGA:
+					// Entrega simple sin receta
+					hasRecipe = false
+					break
+
+				case MovementTypes.ENTREGA_CON_RECETA:
+					// Entrega con receta médica
+					hasRecipe = true
+					break
+
+				case MovementTypes.REINTENTO:
+					// Este es un reintento de una entrega previa
+					retryCount = Math.floor(Math.random() * 3) + 1 // 1-3 reintentos
+					hasRecipe = Math.random() > 0.5
+					// Generar historial de reintentos
+					const retries = []
+					for (let r = 0; r < retryCount; r++) {
+						retries.push({
+							attempt: r + 1,
+							date: new Date(createdAt.getTime() + r * 86400000).toISOString(), // +1 día cada intento
+							reason: randomElement([
+								"Cliente no se encontraba",
+								"Dirección incorrecta",
+								"Teléfono no contesta",
+								"Horario no disponible",
+							]),
+						})
+					}
+					retryHistory = retries
+					break
+
+				case MovementTypes.ENTREGA_VARIAS_DIRECCIONES:
+					// Entrega con múltiples paradas
+					segments = Math.floor(Math.random() * 4) + 2 // 2-5 direcciones
+					const costPerSegment = 1500 + Math.random() * 1000
+					segmentCost = (costPerSegment * segments).toFixed(2)
+					segmentsAddress = Array.from({ length: segments }, () => randomElement(SEGMENT_ADDRESSES))
+					hasRecipe = Math.random() > 0.5
+					break
+			}
 
 			const movementNumber = generateMovementNumber(startIndex + i)
 
@@ -317,10 +480,13 @@ async function createMovements(minMovements = 150) {
 					departureDate,
 					deliveryDate,
 					status,
-					segments: segments > 0 ? segments : null,
-					segmentCost: segmentCost ? segmentCost.toFixed(2) : null,
+					type: movementType,
+					segments,
+					segmentCost,
 					segmentsAddress,
 					hasRecipe,
+					retryCount,
+					retryHistory,
 					createdAt,
 					updatedAt: createdAt,
 				},
@@ -358,6 +524,19 @@ async function createMovements(minMovements = 150) {
 	console.log("-".repeat(60))
 	stats.forEach((stat) => {
 		console.log(`   ${stat.status}: ${stat._count} movimientos`)
+	})
+	console.log("-".repeat(60))
+
+	// Mostrar estadísticas por tipo
+	const typeStats = await prisma.movement.groupBy({
+		by: ["type"],
+		_count: true,
+	})
+
+	console.log("\n📋 ESTADÍSTICAS POR TIPO:")
+	console.log("-".repeat(60))
+	typeStats.forEach((stat) => {
+		console.log(`   ${stat.type}: ${stat._count} movimientos`)
 	})
 	console.log("-".repeat(60))
 }

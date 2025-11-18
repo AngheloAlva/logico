@@ -106,7 +106,7 @@ export function PharmaciesTable() {
 								? Array.from({ length: pageSize }).map((_, index) => (
 										<TableRow key={index}>
 											<TableCell colSpan={4}>
-												<Skeleton className="h-12" />
+												<Skeleton className="h-10" />
 											</TableCell>
 										</TableRow>
 									))

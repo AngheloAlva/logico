@@ -1,12 +1,12 @@
 "use server"
 
-import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
 
 import { driverSchema, type DriverInput } from "@/shared/schemas/driver.schema"
+import { createAuditLog } from "@/lib/audit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { createAuditLog } from "@/lib/audit"
 
 export async function createDriver(data: DriverInput) {
 	const session = await auth.api.getSession({
@@ -20,11 +20,23 @@ export async function createDriver(data: DriverInput) {
 	try {
 		const validated = driverSchema.parse(data)
 
+		const { emergencyContacts, ...driverData } = validated
+
 		const driver = await prisma.driver.create({
-			data: validated,
+			data: {
+				...driverData,
+				emergencyContacts: {
+					create: emergencyContacts,
+				},
+			},
+			include: {
+				emergencyContacts: true,
+				region: true,
+				province: true,
+				city: true,
+			},
 		})
 
-		// Registrar auditoría
 		await createAuditLog({
 			entity: "DRIVER",
 			entityId: driver.id,

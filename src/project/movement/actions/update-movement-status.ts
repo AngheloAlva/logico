@@ -1,10 +1,11 @@
 "use server"
 
-import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
+
+import { createAuditLog } from "@/lib/audit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { createAuditLog } from "@/lib/audit"
 
 export async function updateMovementStatus(
 	id: string,
@@ -19,7 +20,6 @@ export async function updateMovementStatus(
 	}
 
 	try {
-		// Obtener datos anteriores
 		const previousMovement = await prisma.movement.findUnique({
 			where: { id },
 		})
@@ -29,7 +29,6 @@ export async function updateMovementStatus(
 			data: { status },
 		})
 
-		// Registrar auditoría
 		await createAuditLog({
 			entity: "MOVEMENT",
 			entityId: movement.id,

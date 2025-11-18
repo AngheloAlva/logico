@@ -38,6 +38,7 @@ import {
 } from "@/shared/components/ui/select"
 import { Pagination } from "@/shared/components/pagination"
 import { Skeleton } from "@/shared/components/ui/skeleton"
+import { MovementStatus } from "@/generated/prisma"
 
 const statusConfig = {
 	PENDING: {
@@ -65,7 +66,7 @@ const statusConfig = {
 export function MovementsTable() {
 	const [movements, setMovements] = useState<Awaited<ReturnType<typeof getMovements>>["data"]>([])
 	const [searchTerm, setSearchTerm] = useState("")
-	const [statusFilter, setStatusFilter] = useState<string>("all")
+	const [statusFilter, setStatusFilter] = useState<MovementStatus | "all">("all")
 	const [loading, setLoading] = useState(true)
 	const [currentPage, setCurrentPage] = useState(1)
 	const [pageSize, setPageSize] = useState(10)
@@ -74,7 +75,12 @@ export function MovementsTable() {
 
 	async function loadMovements() {
 		setLoading(true)
-		const result = await getMovements({ page: currentPage, pageSize, search: searchTerm })
+		const result = await getMovements({
+			page: currentPage,
+			pageSize,
+			search: searchTerm,
+			status: statusFilter,
+		})
 		if (result.success && result.data) {
 			setMovements(result.data)
 			setTotalItems(result.total || 0)
@@ -106,11 +112,6 @@ export function MovementsTable() {
 		}
 	}
 
-	const filteredMovements = movements?.filter((movement) => {
-		const matchesStatus = statusFilter === "all" || movement.status === statusFilter
-		return matchesStatus
-	})
-
 	return (
 		<div className="space-y-4">
 			<div className="flex flex-col gap-4 sm:flex-row">
@@ -123,7 +124,12 @@ export function MovementsTable() {
 						className="pl-9 focus:border-green-500 focus:ring-green-500"
 					/>
 				</div>
-				<Select value={statusFilter} onValueChange={setStatusFilter}>
+				<Select
+					value={statusFilter}
+					onValueChange={(value) => {
+						setStatusFilter(value as MovementStatus)
+					}}
+				>
 					<SelectTrigger className="w-full sm:w-[200px]">
 						<SelectValue placeholder="Filtrar por estado" />
 					</SelectTrigger>
@@ -160,7 +166,7 @@ export function MovementsTable() {
 											</TableCell>
 										</TableRow>
 									))
-								: filteredMovements?.map((movement) => {
+								: movements?.map((movement) => {
 										const status = statusConfig[movement.status as keyof typeof statusConfig]
 										const StatusIcon = status.icon
 
@@ -188,7 +194,13 @@ export function MovementsTable() {
 													<p className="text-sm">{movement.pharmacy?.name || "Sin asignar"}</p>
 												</TableCell>
 												<TableCell>
-													<p className="text-sm">{movement.driver?.name || "Sin asignar"}</p>
+													<p className="text-sm">
+														{movement.driver?.firstName +
+															" " +
+															movement.driver?.paternalLastName +
+															" " +
+															movement.driver?.maternalLastName}
+													</p>
 												</TableCell>
 												<TableCell>
 													<p className="text-sm">{movement.address}</p>

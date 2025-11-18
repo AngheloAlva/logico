@@ -29,14 +29,18 @@ export async function getRegions(params?: GetRegionsParams) {
 		const where = search
 			? {
 					name: { contains: search, mode: "insensitive" as const },
-			  }
+				}
 			: {}
 
 		const [regions, total] = await Promise.all([
 			prisma.region.findMany({
 				where,
 				include: {
-					cities: true,
+					provinces: {
+						include: {
+							cities: true,
+						},
+					},
 				},
 				orderBy: {
 					name: "asc",

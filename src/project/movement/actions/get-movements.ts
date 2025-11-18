@@ -43,7 +43,9 @@ export async function getMovements(filters?: {
 				{ number: { contains: search, mode: "insensitive" } },
 				{ address: { contains: search, mode: "insensitive" } },
 				{ pharmacy: { name: { contains: search, mode: "insensitive" } } },
-				{ driver: { name: { contains: search, mode: "insensitive" } } },
+				{ driver: { firstName: { contains: search, mode: "insensitive" } } },
+				{ driver: { paternalLastName: { contains: search, mode: "insensitive" } } },
+				{ driver: { maternalLastName: { contains: search, mode: "insensitive" } } },
 			]
 		}
 

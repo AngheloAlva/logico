@@ -105,10 +105,13 @@ export default function ReportesPage() {
 			"Numero,Farmacia,Motorista,Estado,Fecha Creacion,Fecha Salida,Fecha Entrega,Incidencias\n"
 
 		data.movements.forEach((mov) => {
+			const driverName = mov.driver
+				? `${mov.driver.firstName} ${mov.driver.paternalLastName}`
+				: "N/A"
 			const row = [
 				mov.number,
 				mov.pharmacy?.name || "N/A",
-				mov.driver?.name || "N/A",
+				driverName,
 				mov.status,
 				new Date(mov.createdAt).toLocaleString("es-CL"),
 				mov.departureDate ? new Date(mov.departureDate).toLocaleString("es-CL") : "N/A",
@@ -154,9 +157,12 @@ export default function ReportesPage() {
 		content += `MOVIMIENTOS\n\n`
 
 		movements.forEach((mov, index) => {
+			const driverName = mov.driver
+				? `${mov.driver.firstName} ${mov.driver.paternalLastName}`
+				: "N/A"
 			content += `${index + 1}. #${mov.number}\n`
 			content += `   Farmacia: ${mov.pharmacy?.name || "N/A"}\n`
-			content += `   Motorista: ${mov.driver?.name || "N/A"}\n`
+			content += `   Motorista: ${driverName}\n`
 			content += `   Estado: ${mov.status}\n`
 			content += `   Incidencias: ${mov.incidents?.length || 0}\n\n`
 		})

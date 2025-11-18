@@ -19,6 +19,11 @@ export async function getMotorbikeById(id: string) {
 			where: { id },
 			include: {
 				driver: true,
+				annualDocumentations: {
+					orderBy: {
+						year: "desc",
+					},
+				},
 			},
 		})
 

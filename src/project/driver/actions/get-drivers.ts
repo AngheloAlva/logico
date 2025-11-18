@@ -33,7 +33,7 @@ export async function getDrivers(params?: GetDriversParams) {
 						{ rut: { contains: search, mode: "insensitive" as const } },
 						{ email: { contains: search, mode: "insensitive" as const } },
 					],
-			  }
+				}
 			: {}
 
 		const [drivers, total] = await Promise.all([
@@ -42,7 +42,7 @@ export async function getDrivers(params?: GetDriversParams) {
 				include: {
 					region: true,
 					city: true,
-					motorbike: true,
+					motorbikes: true,
 				},
 				orderBy: {
 					createdAt: "desc",
@@ -58,6 +58,12 @@ export async function getDrivers(params?: GetDriversParams) {
 		return { success: true, data: drivers, total, totalPages }
 	} catch (error) {
 		console.error("Error fetching drivers:", error)
-		return { success: false, error: "Error al obtener motoristas", data: [], total: 0, totalPages: 0 }
+		return {
+			success: false,
+			error: "Error al obtener motoristas",
+			data: [],
+			total: 0,
+			totalPages: 0,
+		}
 	}
 }

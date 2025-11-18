@@ -1,12 +1,12 @@
 "use server"
 
-import { headers } from "next/headers"
 import { revalidatePath } from "next/cache"
+import { headers } from "next/headers"
 
 import { motorbikeSchema, type MotorbikeInput } from "@/shared/schemas/motorbike.schema"
+import { createAuditLog } from "@/lib/audit"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
-import { createAuditLog } from "@/lib/audit"
 
 export async function createMotorbike(data: MotorbikeInput) {
 	const session = await auth.api.getSession({
@@ -24,7 +24,6 @@ export async function createMotorbike(data: MotorbikeInput) {
 			data: validated,
 		})
 
-		// Registrar auditoría
 		await createAuditLog({
 			entity: "MOTORBIKE",
 			entityId: motorbike.id,

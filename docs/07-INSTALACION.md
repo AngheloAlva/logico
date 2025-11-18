@@ -33,6 +33,12 @@ git --version
 
 ### 1.3 Instalar Software Faltante
 
+### Instalar Node.js (Windows)
+```bash
+# Descargar desde https://nodejs.org/
+# O usar un manejador de versiones de Node como fnm o nvm
+```
+
 #### Instalar Node.js (macOS)
 
 ```bash
@@ -70,7 +76,7 @@ brew services start postgresql@16
 
 ```bash
 # Clonar el proyecto
-git clone <repository-url> logico
+git clone https://github.com/AngheloAlva/logico.git logico
 cd logico
 
 # Verificar rama actual
@@ -97,12 +103,11 @@ GRANT ALL PRIVILEGES ON DATABASE logico TO logico_user;
 \q
 ```
 
-### 3.2 Alternativa: Usar Vercel Postgres (Recomendado para producción)
+### 3.2 Alternativa: Usar Postgres en la nube (Recomendado para producción)
 
-1. Ir a [Vercel Dashboard](https://vercel.com/dashboard)
+1. Ir a servicios como https://neon.tech o https://supabase.com
 2. Crear nuevo proyecto
-3. Storage → Postgres → Create Database
-4. Copiar DATABASE_URL
+3. Copiar url de conexión
 
 ---
 
@@ -111,7 +116,7 @@ GRANT ALL PRIVILEGES ON DATABASE logico TO logico_user;
 ### 4.1 Crear Archivo .env.local
 
 ```bash
-# Copiar archivo de ejemplo (si existe)
+# Copiar archivo de ejemplo
 cp .env.example .env.local
 
 # O crear manualmente
@@ -123,15 +128,12 @@ touch .env.local
 Editar `.env.local` con el siguiente contenido:
 
 ```bash
-# Database
+# Base de Datos
 DATABASE_URL="postgresql://logico_user:your_secure_password@localhost:5432/logico"
 
-# Better Auth
-BETTER_AUTH_SECRET="generate-a-random-secret-key-here"
+# Better Auth (Autenticación)
+BETTER_AUTH_SECRET="clave-secreta-random"
 BETTER_AUTH_URL="http://localhost:3000"
-
-# Next.js (opcional)
-NEXT_PUBLIC_APP_URL="http://localhost:3000"
 ```
 
 ### 4.3 Generar Secret Key
@@ -144,14 +146,6 @@ openssl rand -base64 32
 node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
 ```
 
-**Ejemplo de .env.local completo:**
-
-```bash
-DATABASE_URL="postgresql://logico_user:SecurePass123@localhost:5432/logico"
-BETTER_AUTH_SECRET="Kx9mP3nR7sW2vY5zC8fH4jL6qT1uA0bD3eG6iM9oN2pS5vX8"
-BETTER_AUTH_URL="http://localhost:3000"
-```
-
 ---
 
 ## 5. Instalación de Dependencias
@@ -159,28 +153,8 @@ BETTER_AUTH_URL="http://localhost:3000"
 ```bash
 # Instalar todas las dependencias
 pnpm install
-
-# Esto instalará:
-# - Dependencias de producción (~70 paquetes)
-# - Dependencias de desarrollo (~20 paquetes)
-# Total: ~90 paquetes
 ```
 
-### 5.1 Verificar Instalación
-
-```bash
-# Ver lista de paquetes instalados
-pnpm list --depth=0
-
-# Debería mostrar paquetes principales como:
-# - next@15.5.4
-# - react@19.1.0
-# - prisma@6.17.1
-# - better-auth@1.3.27
-# - etc.
-```
-
----
 
 ## 6. Configuración de Prisma
 
@@ -206,7 +180,7 @@ pnpm migrate:dev
 
 ```
 Prisma schema loaded from prisma/schema.prisma
-Datasource "db": PostgreSQL database "logico"
+Datasource "db": PostgreSQL database "db_name", schema "public" at "db_url"
 
 ✅ Database connection successful
 ✅ Applied 2 migrations:
@@ -244,28 +218,6 @@ pnpm create:users
 | operadora@logico.test | User123! | operadora |
 | gerente@logico.test | User123! | gerente |
 
-### 7.2 Importar Farmacias (Opcional)
-
-Si tienes el archivo Excel con farmacias:
-
-```bash
-pnpm import:pharmacies
-
-# Lee: base-data/farmacias.xlsx
-# Crea registros de farmacias en BD
-```
-
-### 7.3 Importar Motos (Opcional)
-
-Si tienes el archivo Excel con motos:
-
-```bash
-pnpm import:motorcycles
-
-# Lee: base-data/permiso-de-circulacion-2023.xlsx
-# Crea registros de motos en BD
-```
-
 ---
 
 ## 8. Iniciar Servidor de Desarrollo
@@ -276,18 +228,22 @@ pnpm import:motorcycles
 pnpm dev
 
 # Servidor inicia en: http://localhost:3000
-# Hot reload habilitado con Turbopack
 ```
 
 **Salida esperada:**
 
 ```
-▲ Next.js 15.5.4
-- Local:        http://localhost:3000
-- Turbopack:    enabled
+> logico@0.1.0 dev <url_archivo>/logico
+> next dev --turbopack
 
-✓ Starting...
-✓ Ready in 1.2s
+   ▲ Next.js 15.5.4 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://172.20.10.6:3000
+   - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Compiled middleware in 84ms
+ ✓ Ready in 993ms
 ```
 
 ### 8.2 Verificar Instalación
@@ -320,211 +276,6 @@ Abrir navegador en:
 - [ ] Usuarios de prueba creados
 - [ ] Servidor de desarrollo corriendo
 - [ ] Login funcional
-
-### 9.2 Comandos de Diagnóstico
-
-```bash
-# Verificar conexión a BD
-pnpm prisma db push --preview-feature
-
-# Ver estado de migraciones
-pnpm migrate:dev --create-only
-
-# Verificar build (sin errores TypeScript)
-pnpm build
-
-# Linting
-pnpm lint
-```
-
----
-
-## 10. Solución de Problemas Comunes
-
-### 10.1 Error: Cannot connect to database
-
-**Problema:**
-```
-Error: P1001: Can't reach database server at localhost:5432
-```
-
-**Soluciones:**
-
-```bash
-# 1. Verificar que PostgreSQL está corriendo
-brew services list
-# Debe mostrar: postgresql@16 started
-
-# 2. Iniciar PostgreSQL si está detenido
-brew services start postgresql@16
-
-# 3. Verificar puerto
-psql -h localhost -p 5432 -U postgres
-```
-
-### 10.2 Error: Prisma Client not generated
-
-**Problema:**
-```
-Error: @prisma/client did not initialize yet
-```
-
-**Solución:**
-```bash
-# Generar cliente nuevamente
-pnpm prisma:generate
-
-# Si persiste, reinstalar
-rm -rf node_modules
-rm -rf src/generated
-pnpm install
-pnpm prisma:generate
-```
-
-### 10.3 Error: Port 3000 already in use
-
-**Problema:**
-```
-Error: Port 3000 is already in use
-```
-
-**Soluciones:**
-
-```bash
-# Opción 1: Matar proceso en puerto 3000
-lsof -ti:3000 | xargs kill -9
-
-# Opción 2: Usar otro puerto
-pnpm dev --port 3001
-```
-
-### 10.4 Error: Module not found
-
-**Problema:**
-```
-Error: Cannot find module '@/...'
-```
-
-**Solución:**
-```bash
-# Reinstalar dependencias
-rm -rf node_modules
-rm pnpm-lock.yaml
-pnpm install
-
-# Verificar tsconfig.json paths
-cat tsconfig.json | grep paths
-```
-
-### 10.5 Error: EACCES permission denied
-
-**Problema:**
-```
-Error: EACCES: permission denied
-```
-
-**Solución:**
-```bash
-# Dar permisos al directorio
-sudo chown -R $(whoami) ~/.pnpm-store
-
-# O reinstalar pnpm globalmente
-npm uninstall -g pnpm
-npm install -g pnpm
-```
-
----
-
-## 11. Configuración Avanzada
-
-### 11.1 Variables de Entorno para Producción
-
-```bash
-# .env.production
-DATABASE_URL="postgresql://user:pass@prod-db.example.com:5432/logico"
-BETTER_AUTH_SECRET="production-secret-key"
-BETTER_AUTH_URL="https://logico.example.com"
-```
-
-### 11.2 Optimizaciones de Base de Datos
-
-```sql
--- Crear índices adicionales para performance
-CREATE INDEX idx_movement_created_status ON movement(createdAt, status);
-CREATE INDEX idx_driver_active ON driver(active);
-CREATE INDEX idx_pharmacy_region_city ON pharmacy(regionId, cityId);
-
--- Configurar connection pooling
-ALTER SYSTEM SET max_connections = 200;
-ALTER SYSTEM SET shared_buffers = '256MB';
-```
-
-### 11.3 Configurar Prisma para Producción
-
-```javascript
-// prisma/schema.prisma
-generator client {
-  provider      = "prisma-client-js"
-  output        = "../src/generated/prisma"
-  binaryTargets = ["native", "rhel-openssl-3.0.x"]  // Para Vercel
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
-```
-
----
-
-## 12. Próximos Pasos
-
-Después de completar la instalación:
-
-1. **Familiarízate con el proyecto**
-   - Lee la [Guía de Desarrollo](./08-DESARROLLO.md)
-   - Explora la [Estructura del Proyecto](./03-ESTRUCTURA.md)
-
-2. **Comienza a desarrollar**
-   - Revisa los [Módulos y Funcionalidades](./05-FUNCIONALIDADES.md)
-   - Consulta la [API y Endpoints](./09-API.md)
-
-3. **Configura tu IDE**
-   - Instalar extensiones recomendadas
-   - Configurar ESLint y Prettier
-
----
-
-## 13. Recursos Adicionales
-
-### 13.1 Documentación Oficial
-
-- [Next.js 15](https://nextjs.org/docs)
-- [Prisma](https://www.prisma.io/docs)
-- [Better Auth](https://www.better-auth.com/docs)
-- [PostgreSQL](https://www.postgresql.org/docs/)
-- [pnpm](https://pnpm.io/)
-
-### 13.2 Comunidad
-
-- [Next.js Discord](https://discord.gg/nextjs)
-- [Prisma Discord](https://discord.gg/prisma)
-
----
-
-## Checklist Final
-
-Antes de comenzar el desarrollo, asegúrate de:
-
-- [ ] Todos los comandos de verificación pasan exitosamente
-- [ ] Puedes hacer login en la aplicación
-- [ ] Prisma Studio muestra las tablas correctamente
-- [ ] No hay errores en la consola del navegador
-- [ ] Hot reload funciona (cambios se reflejan automáticamente)
-- [ ] Puedes crear una farmacia de prueba
-- [ ] La documentación es accesible y legible
-
----
 
 **¡Instalación Completa!** 🎉
 

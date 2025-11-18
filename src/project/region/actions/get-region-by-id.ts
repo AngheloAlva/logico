@@ -18,7 +18,11 @@ export async function getRegionById(id: string) {
 		const region = await prisma.region.findUnique({
 			where: { id },
 			include: {
-				cities: true,
+				provinces: {
+					include: {
+						cities: true,
+					},
+				},
 			},
 		})
 
@@ -26,7 +30,10 @@ export async function getRegionById(id: string) {
 			return { success: false, error: "Región no encontrada" }
 		}
 
-		return { success: true, data: region }
+		// Flatten cities from all provinces for backward compatibility
+		const allCities = region.provinces.flatMap((province) => province.cities)
+
+		return { success: true, data: { ...region, cities: allCities } }
 	} catch (error) {
 		console.error("Error fetching region:", error)
 		return { success: false, error: "Error al obtener región" }
